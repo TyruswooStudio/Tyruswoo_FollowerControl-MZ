@@ -160,10 +160,10 @@ Plus, unlimited followers!
 ### For more help using the Follower Control plugin, see [Tyruswoo.com](https://www.tyruswoo.com).
 
 ## Version History:
-**v1.0**  8/22/2020
+**v1.0** - 8/22/2020
 - Follower Control released for RPG Maker MZ!
 
-**v1.1**  8/25/2020
+**v1.1** - 8/25/2020
 - Removed a bug that caused `Tyruswoo.FollowerControl._follower` to be
   reverted to $gamePlayer whenever a `Game_Interpreter` closed. Now,
   the selected follower is remembered from one event to the next,
@@ -172,7 +172,7 @@ Plus, unlimited followers!
   other plugins. For example, this allows `Tyruswoo_TileControl` to use
   information about the current follower in its plugin commands.
 
-**v1.2**  8/30/2020
+**v1.2** - 8/30/2020
 - Corrected bug in replacement method for the function
   `Game_Interpreter.character()`, in which if
   `Tyruswoo.FollowerControl._follower` was not defined using the
@@ -184,7 +184,7 @@ Plus, unlimited followers!
   `Tyruswoo.FollowerControl._follower`, but will instead use
   $gamePlayer, as is the default behavior for the function.
 
-**v1.3**  9/12/2020
+**v1.3** - 9/12/2020
 - Now, if a follower is selected, and the follower does not exist,
   the leader is no longer selected; instead, the non-existent
   follower is selected. Therefore, eventing intended for a follower
@@ -200,7 +200,7 @@ Plus, unlimited followers!
   This increases the chance of compatibility with other plugins
   that use the `Game_Interpreter.character()` method.
 
-**v3.0**  8/27/2021
+**v3.0** - 8/27/2021
 - Fixed a bug in which it was possible to select an absent follower.
   (Followers always technically exist, even if there is no associated
   actor. If there is no actor, the follower is absent/invisible.)
@@ -216,12 +216,12 @@ Plus, unlimited followers!
   Thanks to Edsephiroth for bringing this to our attention and
   helping us test!
 
-**v4.0**  1/21/2022
+**v4.0** - 1/21/2022
 - Introduced non-combat followers.
 - Introduced notetag for always-stepping Actors.
 - New plugin commands: Follower by Position Variable, Follower by Actor Variable, and Change Actor Stepping.
 
-**v5.0**  12/2/2022
+**v5.0** - 12/2/2022
 - Introduced Party plugin commands! Save Party, Load Party,
   Add Party, and Clear Party.
 
