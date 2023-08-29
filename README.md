@@ -160,70 +160,69 @@
 
 ## Version History:
 v1.0  8/22/2020
-       - Follower Control released for RPG Maker MZ!
+- Follower Control released for RPG Maker MZ!
 
 v1.1  8/25/2020
-       - Removed a bug that caused `Tyruswoo.FollowerControl._follower` to be
-         reverted to $gamePlayer whenever a `Game_Interpreter` closed. Now,
-         the selected follower is remembered from one event to the next,
-         (as long as the player stays in the same map). This also allows
-         the Follower Control plugin to much more easily communicate with
-         other plugins. For example, this allows `Tyruswoo_TileControl` to use
-         information about the current follower in its plugin commands.
+- Removed a bug that caused `Tyruswoo.FollowerControl._follower` to be
+  reverted to $gamePlayer whenever a `Game_Interpreter` closed. Now,
+  the selected follower is remembered from one event to the next,
+  (as long as the player stays in the same map). This also allows
+  the Follower Control plugin to much more easily communicate with
+  other plugins. For example, this allows `Tyruswoo_TileControl` to use
+  information about the current follower in its plugin commands.
 
 v1.2  8/30/2020
-       - Corrected bug in replacement method for the function
-         `Game_Interpreter.character()`, in which if
-         `Tyruswoo.FollowerControl._follower` was not defined using the
-         Follower Control plugin, then the first instance of eventing (such
-         as a Transfer Player event) could result in
-         `Game_Interpreter.character()` returning null instead of returning
-         $gamePlayer. Now, if `Tyruswoo.FollowerControl._follower` is not yet
-         defined, `Game_Interpreter.character()` will never use a null value
-         `Tyruswoo.FollowerControl._follower`, but will instead use
-         $gamePlayer, as is the default behavior for the function.
+- Corrected bug in replacement method for the function
+  `Game_Interpreter.character()`, in which if
+  `Tyruswoo.FollowerControl._follower` was not defined using the
+  Follower Control plugin, then the first instance of eventing (such
+  as a Transfer Player event) could result in
+  `Game_Interpreter.character()` returning null instead of returning
+  $gamePlayer. Now, if `Tyruswoo.FollowerControl._follower` is not yet
+  defined, `Game_Interpreter.character()` will never use a null value
+  `Tyruswoo.FollowerControl._follower`, but will instead use
+  $gamePlayer, as is the default behavior for the function.
 
 v1.3  9/12/2020
-       - Now, if a follower is selected, and the follower does not exist,
-         the leader is no longer selected; instead, the non-existent
-         follower is selected. Therefore, eventing intended for a follower
-         that is not present will have no effect, instead of affecting the
-         party leader.
-       - Added the `Tyruswoo.FollowerControl.follower()` function, which
-         allows improves compatability with other plugins that may need to
-         access the current valid follower (if available) stored in the
-         `Tyruswoo.FollowerControl._follower` variable. Plugins that may use
-         this information include `Tyruswoo_TileControl` and
-         `Tyruswoo_CameraControl`.
-       - Changed the method `Game_Interpreter.character()` to an alias method.
-         This increases the chance of compatibility with other plugins
-         that use the `Game_Interpreter.character()` method.
+- Now, if a follower is selected, and the follower does not exist,
+  the leader is no longer selected; instead, the non-existent
+  follower is selected. Therefore, eventing intended for a follower
+  that is not present will have no effect, instead of affecting the
+  party leader.
+- Added the `Tyruswoo.FollowerControl.follower()` function, which
+  allows improves compatability with other plugins that may need to
+  access the current valid follower (if available) stored in the
+  `Tyruswoo.FollowerControl._follower` variable. Plugins that may use
+  this information include `Tyruswoo_TileControl` and
+  `Tyruswoo_CameraControl`.
+- Changed the method `Game_Interpreter.character()` to an alias method.
+  This increases the chance of compatibility with other plugins
+  that use the `Game_Interpreter.character()` method.
 
 v3.0  8/27/2021
-       - Fixed a bug in which it was possible to select an absent follower.
-         (Followers always technically exist, even if there is no associated
-         actor. If there is no actor, the follower is absent/invisible.)
-         This bug manifested when the player had a small party, and the
-         follower selected was less than the Max Party Size but greater than
-         the current party size. This "absent" follower still exists, but
-         has no associated actor and therefore no image. If Show Balloon
-         Icon or Show Animation was used, then the balloon icon or animation
-         would appear at the "absent" follower's location. Note: We made a
-         similar bugfix in Follower Control v2.2 for RPG Maker MV.
-         Big thanks to Lei-Yan for bringing this bug to our attention!
-       - Fixed a rare bug affecting loading and saving in some projects.
-         Thanks to Edsephiroth for bringing this to our attention and
-         helping us test!
+- Fixed a bug in which it was possible to select an absent follower.
+  (Followers always technically exist, even if there is no associated
+  actor. If there is no actor, the follower is absent/invisible.)
+  This bug manifested when the player had a small party, and the
+  follower selected was less than the Max Party Size but greater than
+  the current party size. This "absent" follower still exists, but
+  has no associated actor and therefore no image. If Show Balloon
+  Icon or Show Animation was used, then the balloon icon or animation
+  would appear at the "absent" follower's location. Note: We made a
+  similar bugfix in Follower Control v2.2 for RPG Maker MV.
+  Big thanks to Lei-Yan for bringing this bug to our attention!
+- Fixed a rare bug affecting loading and saving in some projects.
+  Thanks to Edsephiroth for bringing this to our attention and
+  helping us test!
 
 v4.0  1/21/2022
-        - Introduced non-combat followers.
-        - Introduced notetag for always-stepping Actors.
-        - New plugin commands: Follower by Position Variable, Follower by
-          Actor Variable, and Change Actor Stepping.
+- Introduced non-combat followers.
+- Introduced notetag for always-stepping Actors.
+- New plugin commands: Follower by Position Variable, Follower by Actor Variable, and Change Actor Stepping.
 
 v5.0  12/2/2022
-        - Introduced Party plugin commands! Save Party, Load Party,
-          Add Party, and Clear Party.
+ - Introduced Party plugin commands! Save Party, Load Party,
+   Add Party, and Clear Party.
 
 ### Remember, only you can build your dreams!
 *Tyruswoo*
