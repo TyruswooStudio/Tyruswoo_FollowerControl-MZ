@@ -151,12 +151,12 @@
  - Make some player characters always do their step animation, even when
    they remain in one place. This is useful for a flying character whose
    wings are always flapping, for instance. Do this up front with the Actor
-   notetag <stepAnime: true>, or toggle during play with the plugin command
+   notetag `<stepAnime: true>`, or toggle during play with the plugin command
    Change Actor Stepping. Actor stepping status persists for each save file.
    If a move route turns a party member's stepping ON or OFF, step animation
    runs if Actor stepping is ON, or move route stepping is ON, or both.
 
-### For more help using the Follower Control plugin, see Tyruswoo.com.
+### For more help using the Follower Control plugin, see [Tyruswoo.com](https://www.tyruswoo.com).
 
 ## Version History:
 v1.0  8/22/2020
@@ -164,11 +164,11 @@ v1.0  8/22/2020
 
 v1.1  8/25/2020
        - Removed a bug that caused `Tyruswoo.FollowerControl._follower` to be
-         reverted to $gamePlayer whenever a Game_Interpreter closed. Now,
+         reverted to $gamePlayer whenever a `Game_Interpreter` closed. Now,
          the selected follower is remembered from one event to the next,
          (as long as the player stays in the same map). This also allows
          the Follower Control plugin to much more easily communicate with
-         other plugins. For example, this allows Tyruswoo_TileControl to use
+         other plugins. For example, this allows `Tyruswoo_TileControl` to use
          information about the current follower in its plugin commands.
 
 v1.2  8/30/2020
