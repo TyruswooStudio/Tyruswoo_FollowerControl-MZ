@@ -1,33 +1,34 @@
 # Tyruswoo Follower Control for RPG Maker MZ
 
 ## Plugin commands
-   Leader                   Selects the party leader. (Default.)
-   Follower 1               Selects the 1st follower.
-   Follower 2               Selects the 2nd follower.
-   Follower 3               Selects the 3rd follower.
-   Follower 4               Selects the 4th follower.
-   Follower 5               Selects the 5th follower.
-   Follower 6               Selects the 6th follower.
-   Follower 7               Selects the 7th follower.
-   Follower 8               Selects the 8th follower.
-   Follower 9               Selects the 9th follower.
-   Follower by Position     Select any follower, based on marching order.
-   Follower by Name         Select follower by name of actor in database.
-   Follower by Actor ID     Select follower by actor ID.
-   Follower by Position Var Select follower by position stored in variable.
-   Follower by Actor Var.   Select follower by actor ID stored in variable.
-   Stop Chase               Prevent followers from chasing the leader.
-   Chase                    Allow followers to chase the leader. (Default.)
-   Pose                     Change a party member's character image to pose.
-   Reset Pose               Change a party member to their default pose.
-   Change Actor Stepping    Change whether one's step animation stays on.
-   Save Party               Save current party as an available party.
-   Load Party               Remove current party, then add a saved party.
-   Add Party                Join current party with a saved party.
-   Clear Party              Remove party. (Be sure to add a party member!)
+| Leader                |  Selects the party leader. (Default.) |
+|-----------------------|---------------------------------------|
+| Follower 1            |  Selects the 1st follower. |
+| Follower 2            |  Selects the 2nd follower. |
+| Follower 3            |  Selects the 3rd follower. |
+| Follower 4            |  Selects the 4th follower. |
+| Follower 5            |  Selects the 5th follower. |
+| Follower 6            |  Selects the 6th follower. |
+| Follower 7            |  Selects the 7th follower. |
+| Follower 8            |  Selects the 8th follower. |
+| Follower 9            |  Selects the 9th follower. |
+| Follower by Position  |  Select any follower, based on marching order. |
+| Follower by Name      |  Select follower by name of actor in database. |
+| Follower by Actor ID  |  Select follower by actor ID. |
+| Follower by Position Var | Select follower by position stored in variable. |
+| Follower by Actor Var. | Select follower by actor ID stored in variable. |
+| Stop Chase             | Prevent followers from chasing the leader. |
+| Chase                  | Allow followers to chase the leader. (Default.) |
+| Pose                   | Change a party member's character image to pose. |
+| Reset Pose             | Change a party member to their default pose. |
+| Change Actor Stepping  | Change whether one's step animation stays on. |
+| Save Party             | Save current party as an available party. |
+| Load Party             | Remove current party, then add a saved party. |
+| Add Party              | Join current party with a saved party. |
+| Clear Party            | Remove party. (Be sure to add a party member!) |
 
 ## Plugin parameters
-
+```
    Max Battle Members        Set how many party members can be in battle at
                              a time. The current battle party will also be
                              visible in the follower lineup. Default 4.
@@ -41,30 +42,30 @@
                              but not in the field menu or in battle.
 
    Search Limit              Set the pathfinding search limit. Default 12.
-
+```
 ## Notetags
-   `<stepAnime: true>`     Give an actor this notetag if he should always do
-                         his step animation, even when staying in one place.
+```
+   <stepAnime: true>       Give an actor this notetag if he should always do
+                           his step animation, even when staying in one place.
+```
 
 ## Script calls
 *(Advanced. Use these within the Set Move Route command.)*
-   this.path(x, y)          Pathfind to the absolute coordinates indicated.
-   this.path('event', id)   Pathfind to the event of ID number id.
-   this.path('e', id)       Same as this.path('event', id). May use 'E'.
-   this.path('follower', i) Pathfind to the follower of position i.
-   this.path('f', i)        Same as this.path('follower', i). May use 'F'.
-   this.path('leader')      Pathfind to the party leader.
-   this.path('L')           Same as this.path('leader'). May use 'l'.
-   this.moveToward(x, y)    Move toward the absolute coordinates indicated.
-   this.moveToward('e', id) Move toward the event of ID number id.
-   this.moveToward('f', i)  Move toward the follower of position i.
-   this.moveToward('L')     Move toward the party leader. May use 'l'.
 
-   this.path($gamePlayer.x+n, $gamePlayer.y+m)
-                            Where n and m are integer numbers to indicate
-                            coordinates relative to the player's position.
-                            Pathfind to the coordinates indicated. (May use
-                            +n or -n, +m or -m.)
+| Script | Action |
+|--------|--------|
+| `this.path(x, y)`          | Pathfind to the absolute coordinates indicated. |
+| `this.path('event', id)`   | Pathfind to the event of ID number id. |
+| `this.path('e', id)`       | Same as this.path('event', id). May use 'E'. |
+| `this.path('follower', i)` | Pathfind to the follower of position i. |
+| `this.path('f', i)`        | Same as this.path('follower', i). May use 'F'. |
+| `this.path('leader')`      | Pathfind to the party leader. |
+| `this.path('L')`           | Same as this.path('leader'). May use 'l'. |
+| `this.moveToward(x, y)`    | Move toward the absolute coordinates indicated. |
+| `this.moveToward('e', id)` | Move toward the event of ID number id. |
+| `this.moveToward('f', i)`  | Move toward the follower of position i. |
+| `this.moveToward('L')`     | Move toward the party leader. May use 'l'. |
+| `this.path($gamePlayer.x+n, $gamePlayer.y+m)` | Where n and m are integer numbers to indicate coordinates relative to the player's position. Pathfind to the coordinates indicated. (May use +n or -n, +m or -m.) |
 
    Note that this.path() scripts are to be used within Set Move Route
    commands, and only result in taking 1 step on the path. Use multiple
