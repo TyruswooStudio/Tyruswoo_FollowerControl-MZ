@@ -1,8 +1,9 @@
 # Tyruswoo Follower Control for RPG Maker MZ
 
 ## Plugin commands
+| Command               |  Action                    |
+|-----------------------|----------------------------|
 | Leader                |  Selects the party leader. (Default.) |
-|-----------------------|---------------------------------------|
 | Follower 1            |  Selects the 1st follower. |
 | Follower 2            |  Selects the 2nd follower. |
 | Follower 3            |  Selects the 3rd follower. |
@@ -28,26 +29,19 @@
 | Clear Party            | Remove party. (Be sure to add a party member!) |
 
 ## Plugin parameters
-```
-   Max Battle Members        Set how many party members can be in battle at
-                             a time. The current battle party will also be
-                             visible in the follower lineup. Default 4.
 
-   Max Non-Combat Followers  Up to this many actors who never battle may
-                             join the party at a time for plot reasons and
-                             be seen following the active party. Default 1.
+| Parameter | Meaning |
+|-----------|---------|
+| Max Battle Members        | Set how many party members can be in battle at a time. The current battle party will also be visible in the follower lineup. Default 4. |
+| Max Non-Combat Followers  | Up to this many actors who never battle may join the party at a time for plot reasons and be seen following the active party. Default 1. |
+| Non-Combat Class          | Pick a class from the database. Actors of this class will show up in the follower lineup but not in the field menu or in battle. |
+| Search Limit              | Set the pathfinding search limit. Default 12. |
 
-   Non-Combat Class          Pick a class from the database. Actors of
-                             this class will show up in the follower lineup
-                             but not in the field menu or in battle.
-
-   Search Limit              Set the pathfinding search limit. Default 12.
-```
 ## Notetags
-```
-   <stepAnime: true>       Give an actor this notetag if he should always do
-                           his step animation, even when staying in one place.
-```
+
+| Notetag             | Meaning   |
+|---------------------|-----------|
+| `<stepAnime: true>` | Give an actor this notetag if he should always do his step animation, even when staying in one place. |
 
 ## Script calls
 *(Advanced. Use these within the Set Move Route command.)*
