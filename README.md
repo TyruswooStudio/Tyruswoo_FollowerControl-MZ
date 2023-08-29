@@ -1,5 +1,11 @@
 # Tyruswoo Follower Control for RPG Maker MZ
 
+Provides greater control of party follower movement!
+
+Allows event commands targeting the “player” to affect any follower of your choosing!
+
+Plus, unlimited followers!
+
 ## Plugin commands
 | Command               |  Action                    |
 |-----------------------|----------------------------|
@@ -216,8 +222,9 @@ v4.0  1/21/2022
 - New plugin commands: Follower by Position Variable, Follower by Actor Variable, and Change Actor Stepping.
 
 v5.0  12/2/2022
- - Introduced Party plugin commands! Save Party, Load Party,
-   Add Party, and Clear Party.
+- Introduced Party plugin commands! Save Party, Load Party,
+  Add Party, and Clear Party.
 
-### Remember, only you can build your dreams!
-*Tyruswoo*
+> **Remember, only you can build your dreams!**
+> 
+> *Tyruswoo*
