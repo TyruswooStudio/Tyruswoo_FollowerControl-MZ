@@ -267,6 +267,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * v5.0  12/2/2022
  *         - Introduced Party plugin commands! Save Party, Load Party,
  *           Add Party, and Clear Party.
+ * 
+ * v5.0.1  8/30/2023
+ *         - This plugin is now free and open source under the MIT license.
  * ============================================================================
  * MIT License
  *

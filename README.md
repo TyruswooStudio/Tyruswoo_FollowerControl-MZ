@@ -225,6 +225,9 @@ Plus, unlimited followers!
 - Introduced Party plugin commands! Save Party, Load Party,
   Add Party, and Clear Party.
 
+**v5.0.1** - 8/30/2023
+- This plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
+
 > **Remember, only you can build your dreams!**
 > 
 > *Tyruswoo*
