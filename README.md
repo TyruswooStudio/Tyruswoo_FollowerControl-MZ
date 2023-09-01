@@ -1,4 +1,9 @@
-# Tyruswoo Follower Control for RPG Maker MZ
+## WARNING: This is an older version!
+It lacks the features and improvements of this plugin's later versions.
+To get the latest version for free, visit
+[Tyruswoo.com](https://www.tyruswoo.com).
+
+# Tyruswoo Follower Control v4.0.1 for RPG Maker MZ
 
 Provides greater control of party follower movement!
 
@@ -29,10 +34,6 @@ Plus, unlimited followers!
 | Pose                   | Change a party member's character image to pose. |
 | Reset Pose             | Change a party member to their default pose. |
 | Change Actor Stepping  | Change whether one's step animation stays on. |
-| Save Party             | Save current party as an available party. |
-| Load Party             | Remove current party, then add a saved party. |
-| Add Party              | Join current party with a saved party. |
-| Clear Party            | Remove party. (Be sure to add a party member!) |
 
 ## Plugin parameters
 
@@ -221,12 +222,8 @@ Plus, unlimited followers!
 - Introduced notetag for always-stepping Actors.
 - New plugin commands: Follower by Position Variable, Follower by Actor Variable, and Change Actor Stepping.
 
-**v5.0** - 12/2/2022
-- Introduced Party plugin commands! Save Party, Load Party,
-  Add Party, and Clear Party.
-
-**v5.0.1** - 8/30/2023
-- This plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
+**v4.0.1** - 8/31/2023
+- This older plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
 > **Remember, only you can build your dreams!**
 > 

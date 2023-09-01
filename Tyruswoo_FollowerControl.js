@@ -36,11 +36,17 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc MZ v5.0 Provides greater control of party follower movement! Allows event commands targeting the "player" to affect any follower!
+ * @plugindesc v4.0.1 Provides greater control of party follower movement! Allows event commands
+ * targeting the "player" to affect any follower of your choosing!
  * @author Tyruswoo and McKathlin
  * @url https://www.tyruswoo.com
  *
  * @help Tyruswoo Follower Control for RPG Maker MZ
+ * 
+ * WARNING: This is an older plugin! It lacks features and improvements
+ * present in the latest version. You can get the latest version for free
+ * on Tyruswoo.com.
+ *
  * ============================================================================
  * Plugin commands:
  *    Leader                   Selects the party leader. (Default.)
@@ -63,10 +69,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    Pose                     Change a party member's character image to pose.
  *    Reset Pose               Change a party member to their default pose.
  *    Change Actor Stepping    Change whether one's step animation stays on.
- *    Save Party               Save current party as an available party.
- *    Load Party               Remove current party, then add a saved party.
- *    Add Party                Join current party with a saved party.
- *    Clear Party              Remove party. (Be sure to add a party member!)
  * ============================================================================
  * Plugin parameters:
  * 
@@ -101,22 +103,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    this.moveToward('e', id) Move toward the event of ID number id.
  *    this.moveToward('f', i)  Move toward the follower of position i.
  *    this.moveToward('L')     Move toward the party leader. May use 'l'.
- *
- *    this.path($gamePlayer.x+n, $gamePlayer.y+m)
- *                             Where n and m are integer numbers to indicate
- *                             coordinates relative to the player's position.
- *                             Pathfind to the coordinates indicated. (May use
- *                             +n or -n, +m or -m.)
- *
- *    Note that this.path() scripts are to be used within Set Move Route
- *    commands, and only result in taking 1 step on the path. Use multiple
- *    this.path() scripts in the move route for multiple steps on the path.
- *
- *    Note also that this.path() seeks a path around obstacles, whereas
- *    this.moveToward() may result in bumping into obstacles. When using
- *    this.path(), be sure the character's Through is Off to find a path around
- *    obstacles. If Through is On, then this.path() will cause the character to
- *    move through obstacles, instead of pathing around obstacles.
  * ============================================================================
  * Basics of how to use this plugin:
  * 1. First, select the desired party member. This may be the leader, for
@@ -263,13 +249,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *         - Introduced notetag for always-stepping Actors.
  *         - New plugin commands: Follower by Position Variable, Follower by
  *           Actor Variable, and Change Actor Stepping.
- *
- * v5.0  12/2/2022
- *         - Introduced Party plugin commands! Save Party, Load Party,
- *           Add Party, and Clear Party.
  * 
- * v5.0.1  8/30/2023
- *         - This plugin is now free and open source under the MIT license.
+ * v4.0.1  8/31/2023
+ *        - This plugin is now free and open source under the MIT license.
  * ============================================================================
  * MIT License
  *
@@ -451,7 +433,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * 
  * @command change_actor_step_anime
  * @text Change Actor Stepping
- * @desc Change whether a particular actor's step animation always runs, even when the actor is not walking.
+ * @desc Change whether a particular actor's step animation always runs, even in one place.
  * 
  * @arg actorId
  * @type actor
@@ -463,43 +445,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * @text Stepping
  * @desc Whether this actor should always be stepping.
  * @default false
- *
- * @command save_party
- * @text Save Party
- * @desc Save the current set of actors as an available party.
- *
- * @arg party_id
- * @text Party ID
- * @type number
- * @default 1
- * @min 1
- * @desc Save the current set of actors to the party slot with this ID.
- *
- * @command load_party
- * @text Load Party
- * @desc Removes all actors from the current party, and adds the actors from one of the available parties.
- *
- * @arg party_id
- * @text Party ID
- * @type number
- * @default 1
- * @min 1
- * @desc Load the set of actors from the party slot with this ID.
- *
- * @command add_party
- * @text Add Party
- * @desc Joins the current party with a specified party from the available saved parties.
- *
- * @arg party_id
- * @text Party ID
- * @type number
- * @default 1
- * @min 1
- * @desc Onto the current party, append the set of actors from the party slot with this ID.
- *
- * @command clear_party
- * @text Clear Party
- * @desc Removes all actors from the current party. (After clearing the party, remember to add an actor to the party!)
  * 
  */
 
@@ -542,9 +487,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			set: function(value) {
 				this._followerIndex = value;
 				if (this._followerIndex > 0) {
-					//console.log("FollowerControl: Move Route commands now affect Follower ", this._followerIndex);
+					console.log("FollowerControl: Move Route commands now affect Follower ", this._followerIndex);
 				} else if (this._followerIndex === 0) {
-					//console.log("FollowerControl: Move Route commands now affect the party Leader.");
+					console.log("FollowerControl: Move Route commands now affect the party Leader.");
 				} else {
 					console.warn("FollowerControl: follower index set to unexpected number " + this._followerIndex);
 				}
@@ -716,7 +661,10 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	PluginManager.registerCommand(pluginName, "pose", args => {
 		let actor = Tyruswoo.FollowerControl.actor;
 		if (actor) {
-			let core = actor.characterNameCore();
+			if (!actor._characterNameCore) {
+				actor._characterNameCore = actor.characterName();
+			}
+			let core = actor._characterNameCore;
 			let pose = core + "_" + args.poseName;
 			actor._characterName = pose;
 			$gamePlayer.refresh();
@@ -727,7 +675,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	PluginManager.registerCommand(pluginName, "reset_pose", args => {
 		let actor = Tyruswoo.FollowerControl.actor;
 		if (actor) {
-			actor._characterName = actor.characterNameCore();
+			actor._characterName = actor._characterNameCore;
 			$gamePlayer.refresh();
 		}
 	});
@@ -742,32 +690,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		} else {
 			console.warn("Tyruswoo_FollowerControl change_actor_step_anime: no actor selected.");
 		}
-	});
-	
-	// save_party
-	PluginManager.registerCommand(pluginName, "save_party", args => {
-		let partyId = Number(args.party_id);
-		$gameParty.saveParty(partyId, $gameParty._actors);
-		console.log("Current party saved as Party ID " + partyId + ":", $gameParty.getSavedParty(partyId));
-	});
-	
-	// load_party
-	PluginManager.registerCommand(pluginName, "load_party", args => {
-		let partyId = Number(args.party_id);
-		$gameParty.changeTo($gameParty.getSavedParty(partyId));
-		console.log("Party " + partyId + "Loaded:", $gameParty.getSavedParty(partyId));
-	});
-	
-	// add_party
-	PluginManager.registerCommand(pluginName, "add_party", args => {
-		let partyId = Number(args.party_id);
-		$gameParty.addActors($gameParty.getSavedParty(partyId));
-		console.log("Party " + partyId + " added to existing party.");
-	});
-	
-	// clear_party
-	PluginManager.registerCommand(pluginName, "clear_party", args => {
-		$gameParty.clear();
 	});
 
 	//=============================================================================
@@ -888,6 +810,12 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			return Tyruswoo.FollowerControl.Game_Event_meetsConditions.call(
 				this, page);
 		}
+		const actorValid = page.conditions.actorValid;
+		page.conditions.actorValid = false;
+		var valid = Tyruswoo.FollowerControl.Game_Event_meetsConditions.call(
+			this, page);
+		page.conditions.actorValid = true;
+		return valid;
 	};
 
 	//=============================================================================
@@ -903,15 +831,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			/<step(?:ping|[\-_ ]?anime)? ?: ?(?:on|true|yes|always)>/i);
 	};
 
-	// New method
-	Game_Actor.prototype.characterNameCore = function() {
-		if (undefined === this._characterNameCore) {
-			this._characterNameCore = this.characterName();
-		}
-		return this._characterNameCore;
-	};
-
-	// Alias method
+	// Alias method.
 	// If an actor's character image is set by a command,
 	// then reset the pose core to the new character image.
 	Tyruswoo.FollowerControl.Game_Actor_setCharacterImage =
@@ -1037,18 +957,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		} else {
 			this._searchLimit = Tyruswoo.FollowerControl.param.searchLimit; //Default searchLimit.
 		}
-	};
-	
-	// New method. Dec. 27, 2018.
-	// For use in script calls.
-	Game_CharacterBase.prototype.jumpToFront = function() {
-		var x = this.x;
-		var y = this.y;
-		var x2 = $gameMap.roundXWithDirection($gamePlayer.x, $gamePlayer.direction());
-		var y2 = $gameMap.roundYWithDirection($gamePlayer.y, $gamePlayer.direction());
-		var dx = x2 - x;
-		var dy = y2 - y;
-		this.jump(dx, dy);
 	};
 
 	//=============================================================================
@@ -1250,17 +1158,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			this._followers.setMoveSpeedAll(moveSpeed);
 		}
 	};
-	
-	// New method, 26 Dec. 2018.
-	// Allows more easily using a script call to find the last follower.
-	Game_Player.prototype.lastFollower = function() {
-		var lastFollower = this;
-		var partySize = $gameParty.allMembers().length;
-		if(partySize > 1) {
-			lastFollower = this.followers().follower(partySize - 2); // -1 because leader is not a follower, and another -1 because array starts at zero.
-		}
-		return lastFollower;
-	};
 
 	//=============================================================================
 	// Game_Followers
@@ -1394,71 +1291,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			// Do the usual.
 			Game_Character.prototype.setStepAnime.call(this, stepAnime);
 		}
-	};
-	
-	//=============================================================================
-	// Game_Party
-	//=============================================================================
-
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Party_initialize = Game_Party.prototype.initialize;
-	Game_Party.prototype.initialize = function() {
-		Tyruswoo.FollowerControl.Game_Party_initialize.call(this);
-		this._savedParties = [];
-	};
-
-	// New method
-	// Get the Actor list from one of the saved party slots.
-	Game_Party.prototype.getSavedParty = function(partyId) {
-		if(!this._savedParties) {
-			this._savedParties = [];
-		}
-		if(partyId && this._savedParties[partyId]) {
-			return this._savedParties[partyId];
-		} else {
-			throw new Error("Invalid Saved Party ID: " + partyId);
-		}
-	};
-
-	// New method
-	// Save an Actor list to one of the saved party slots.
-	Game_Party.prototype.saveParty = function(partyId, actorList) {
-		if(!this._savedParties) {
-			this._savedParties = [];
-		}
-		if(partyId && actorList) {
-			this._savedParties[partyId] = actorList;
-		} else {
-			if(!partyId) {
-				throw new Error("Tyruswoo_FollowerControl Game_Party.saveParty(): Invalid Saved Party ID: " + partyId);
-			} else if (!actorList) {
-				throw new Error("Tyruswoo_FollowerControl Game_Party.saveParty(): Invalid actorList: " + actorList);
-			}
-		}
-	};
-
-	// New method
-	// Add all Actors from actorList to the existing list.
-	Game_Party.prototype.addActors = function(actorList) {
-		this._actors = this._actors.concat(actorList);
-		$gamePlayer.refresh();
-		$gameMap.requestRefresh();
-	};
-
-	// New method
-	// replace current Actor list with the given one.
-	Game_Party.prototype.changeTo = function(actorList) {
-		this._actors = actorList;
-		$gamePlayer.refresh();
-		$gameMap.requestRefresh();
-	};
-
-	// New method
-	// remove all party members
-	Game_Party.prototype.clear = function() {
-		$gameParty._actors = [];
-		$gamePlayer.refresh();
-		$gameMap.requestRefresh();
 	};
 
 })();
