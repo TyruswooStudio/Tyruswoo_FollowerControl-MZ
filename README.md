@@ -3,7 +3,7 @@ It lacks the features and improvements of this plugin's later versions.
 To get the latest version for free, visit
 [Tyruswoo.com](https://www.tyruswoo.com).
 
-# Tyruswoo Follower Control v4.0.1 for RPG Maker MZ
+# Tyruswoo Follower Control v3.0.1 for RPG Maker MZ
 
 Provides greater control of party follower movement!
 
@@ -27,28 +27,17 @@ Plus, unlimited followers!
 | Follower by Position  |  Select any follower, based on marching order. |
 | Follower by Name      |  Select follower by name of actor in database. |
 | Follower by Actor ID  |  Select follower by actor ID. |
-| Follower by Position Var | Select follower by position stored in variable. |
-| Follower by Actor Var. | Select follower by actor ID stored in variable. |
 | Stop Chase             | Prevent followers from chasing the leader. |
 | Chase                  | Allow followers to chase the leader. (Default.) |
 | Pose                   | Change a party member's character image to pose. |
 | Reset Pose             | Change a party member to their default pose. |
-| Change Actor Stepping  | Change whether one's step animation stays on. |
 
 ## Plugin parameters
 
 | Parameter | Meaning |
 |-----------|---------|
 | Max Battle Members        | Set how many party members can be in battle at a time. The current battle party will also be visible in the follower lineup. Default 4. |
-| Max Non-Combat Followers  | Up to this many actors who never battle may join the party at a time for plot reasons and be seen following the active party. Default 1. |
-| Non-Combat Class          | Pick a class from the database. Actors of this class will show up in the follower lineup but not in the field menu or in battle. |
 | Search Limit              | Set the pathfinding search limit. Default 12. |
-
-## Notetags
-
-| Notetag             | Meaning   |
-|---------------------|-----------|
-| `<stepAnime: true>` | Give an actor this notetag if he should always do his step animation, even when staying in one place. |
 
 ## Script calls
 *(Advanced. Use these within the Set Move Route command.)*
@@ -143,20 +132,6 @@ Plus, unlimited followers!
    have Through On, so if you want the followers to pathfind around
    solid obstacles, you will need to use Set Move Route on the follower to
    set Through Off.
- - Followers who don't battle! Comes in handy for escort or rescue quests
-   or other tag-alongs. To make a character a Non-Combat Follower, put him
-   in the Actors database and assign the Non-Combat Class as his class.
-   He can join and leave the party in the same way that adventuring party
-   members do, and he counts as "in the party" for the purposes of on-map
-   events. As a Non-Combat Follower, he will walk behind the active
-   adventuring party, but he won't appear in the field menu or in battle.
- - Make some player characters always do their step animation, even when
-   they remain in one place. This is useful for a flying character whose
-   wings are always flapping, for instance. Do this up front with the Actor
-   notetag `<stepAnime: true>`, or toggle during play with the plugin command
-   Change Actor Stepping. Actor stepping status persists for each save file.
-   If a move route turns a party member's stepping ON or OFF, step animation
-   runs if Actor stepping is ON, or move route stepping is ON, or both.
 
 ### For more help using the Follower Control plugin, see [Tyruswoo.com](https://www.tyruswoo.com).
 
@@ -217,12 +192,7 @@ Plus, unlimited followers!
   Thanks to Edsephiroth for bringing this to our attention and
   helping us test!
 
-**v4.0** - 1/21/2022
-- Introduced non-combat followers.
-- Introduced notetag for always-stepping Actors.
-- New plugin commands: Follower by Position Variable, Follower by Actor Variable, and Change Actor Stepping.
-
-**v4.0.1** - 8/31/2023
+**v3.0.1** - 8/31/2023
 - This older plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
 > **Remember, only you can build your dreams!**

@@ -36,7 +36,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc v4.0.1 Provides greater control of party follower movement! Allows event commands
+ * @plugindesc v3.0.1 Provides greater control of party follower movement! Allows event commands
  * targeting the "player" to affect any follower of your choosing!
  * @author Tyruswoo and McKathlin
  * @url https://www.tyruswoo.com
@@ -62,34 +62,14 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    Follower by Position     Select any follower, based on marching order.
  *    Follower by Name         Select follower by name of actor in database.
  *    Follower by Actor ID     Select follower by actor ID.
- *    Follower by Position Var Select follower by position stored in variable.
- *    Follower by Actor Var.   Select follower by actor ID stored in variable.
  *    Stop Chase               Prevent followers from chasing the leader.
  *    Chase                    Allow followers to chase the leader. (Default.)
  *    Pose                     Change a party member's character image to pose.
  *    Reset Pose               Change a party member to their default pose.
- *    Change Actor Stepping    Change whether one's step animation stays on.
  * ============================================================================
  * Plugin parameters:
- * 
- *    Max Battle Members        Set how many party members can be in battle at
- *                              a time. The current battle party will also be
- *                              visible in the follower lineup. Default 4.
- * 
- *    Max Non-Combat Followers  Up to this many actors who never battle may
- *                              join the party at a time for plot reasons and
- *                              be seen following the active party. Default 1.
- * 
- *    Non-Combat Class          Pick a class from the database. Actors of
- *                              this class will show up in the follower lineup
- *                              but not in the field menu or in battle.
- * 
- *    Search Limit              Set the pathfinding search limit. Default 12.
- * 
- * ============================================================================
- * Notetags:
- *    <stepAnime: true>     Give an actor this notetag if he should always do
- *                          his step animation, even when staying in one place.
+ *    Max Party Members        Set how many party members are shown. Default 4.
+ *    Search Limit             Set the pathfinding search limit. Default 12.
  * ============================================================================
  * Script calls: (Advanced. Use these within the Set Move Route command.)
  *    this.path(x, y)          Pathfind to the absolute coordinates indicated.
@@ -169,20 +149,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    have Through On, so if you want the followers to pathfind around
  *    solid obstacles, you will need to use Set Move Route on the follower to
  *    set Through Off.
- *  - Followers who don't battle! Comes in handy for escort or rescue quests
- *    or other tag-alongs. To make a character a Non-Combat Follower, put him
- *    in the Actors database and assign the Non-Combat Class as his class.
- *    He can join and leave the party in the same way that adventuring party
- *    members do, and he counts as "in the party" for the purposes of on-map
- *    events. As a Non-Combat Follower, he will walk behind the active
- *    adventuring party, but he won't appear in the field menu or in battle.
- *  - Make some player characters always do their step animation, even when
- *    they remain in one place. This is useful for a flying character whose
- *    wings are always flapping, for instance. Do this up front with the Actor
- *    notetag <stepAnime: true>, or toggle during play with the plugin command
- *    Change Actor Stepping. Actor stepping status persists for each save file.
- *    If a move route turns a party member's stepping ON or OFF, step animation
- *    runs if Actor stepping is ON, or move route stepping is ON, or both.
  * ============================================================================
  * For more help using the Follower Control plugin, see Tyruswoo.com.
  * ============================================================================
@@ -232,26 +198,22 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *        - Fixed a bug in which it was possible to select an absent follower.
  *          (Followers always technically exist, even if there is no associated
  *          actor. If there is no actor, the follower is absent/invisible.)
- *          This bug manifested when the player had a small party, and the
- *          follower selected was less than the Max Party Size but greater than
- *          the current party size. This "absent" follower still exists, but
- *          has no associated actor and therefore no image. If Show Balloon
- *          Icon or Show Animation was used, then the balloon icon or animation
- *          would appear at the "absent" follower's location. Note: We made a
- *          similar bugfix in Follower Control v2.2 for RPG Maker MV.
- *          Big thanks to Lei-Yan for bringing this bug to our attention!
+ *          This bug manifested when the player had a small party, and a
+ *          follower was selected that was less than the Max Party Size but
+ *          greater than the current party size. This "absent" follower still
+ *          exists, but does not have an associated actor and therefore no
+ *          image. If Show Balloon Icon or Show Animation was used, then the
+ *          balloon icon or animation would appear at the location where the
+ *          "absent" follower is located. Note: This is similar to the bugfix
+ *          in Follower Control v2.2 for RPG Maker MV. Big thanks to Lei-Yan
+ *          for bringing this bug to my attention!
  *        - Fixed a rare bug affecting loading and saving in some projects.
  *          Thanks to Edsephiroth for bringing this to our attention and
  *          helping us test!
  * 
- * v4.0  1/21/2022
- *         - Introduced non-combat followers.
- *         - Introduced notetag for always-stepping Actors.
- *         - New plugin commands: Follower by Position Variable, Follower by
- *           Actor Variable, and Change Actor Stepping.
- * 
- * v4.0.1  8/31/2023
+ * v3.0.1  8/31/2023
  *        - This plugin is now free and open source under the MIT license.
+ * 
  * ============================================================================
  * MIT License
  *
@@ -278,28 +240,18 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * Remember, only you can build your dreams!
  * -Tyruswoo
  *
- * @param Max Battle Members
+ * @param Max Party Members
  * @type number
  * @min 1
- * @desc The maximum number of party members active in battle. Default: 4
+ * @desc The maximum number of party members. This includes the leader and followers. Default: 4
  * @default 4
- * 
- * @param Max Non-Combat Followers
- * @type number
- * @min 0
- * @desc Up to this many non-combat actors may be seen following the party at a time.
- * @default 1
- *
- * @param Non-Combat Class
- * @type class
- * @desc Actors of this class don't show up in battle or in the field menu.
  *
  * @param Pathfinding Search Limit
  * @type number
  * @min 1
  * @desc The pathfinding search limit for the player, followers, and events. Default: 12
  * @default 12
- * 
+ *
  * @command leader
  * @text Leader
  * @desc Selects the party leader. (This is the default for RPG Maker.)
@@ -384,27 +336,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * @desc Select a follower by actor ID.
  *       Must match the actor's ID number defined in the Database.
  *
- * 
- * @command follower_by_position_variable
- * @text Follower by Position Variable
- * @desc Select a follower by the position index stored in a variable.
- * 
- * @arg variableId
- * @type variable
- * @text Variable ID
- * @desc Pick a variable. The value stored in it represents the
- *       member's place in the party lineup, where 0 is leader.
- * 
- * @command follower_by_actor_variable
- * @text Follower by Actor Variable
- * @desc Select a follower by the actor ID stored in a variable.
- * 
- * @arg variableId
- * @type variable
- * @text Variable ID
- * @desc Pick a variable. The value stored in it represents the
- *       actor ID of the follower to select.
- * 
  * @command stop_chase
  * @text Stop Chase
  * @desc Prevent the followers from chasing the leader.
@@ -430,22 +361,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * @text Reset Pose
  * @desc Reset the follower's actor's character image to the actor's
  *       current non-posed character image.
- * 
- * @command change_actor_step_anime
- * @text Change Actor Stepping
- * @desc Change whether a particular actor's step animation always runs, even in one place.
- * 
- * @arg actorId
- * @type actor
- * @text Actor
- * @desc The actor whose step animation setting should change.
- *
- * @arg stepAnime
- * @type boolean
- * @text Stepping
- * @desc Whether this actor should always be stepping.
- * @default false
- * 
  */
 
 (() => {
@@ -455,14 +370,8 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	Tyruswoo.FollowerControl.param = Tyruswoo.FollowerControl.param || {};
 
 	// User-Defined Plugin Parameters
-	Tyruswoo.FollowerControl.param.maxBattleMembers = Number(
-		Tyruswoo.FollowerControl.parameters['Max Battle Members']);
-	Tyruswoo.FollowerControl.param.maxNonCombatFollowers = Number(
-		Tyruswoo.FollowerControl.parameters['Max Non-Combat Followers']);
-	Tyruswoo.FollowerControl.param.nonCombatClass = Number(
-		Tyruswoo.FollowerControl.parameters['Non-Combat Class']);
-	Tyruswoo.FollowerControl.param.searchLimit = Number(
-		Tyruswoo.FollowerControl.parameters['Pathfinding Search Limit']);
+	Tyruswoo.FollowerControl.param.maxBattleMembers = Number(Tyruswoo.FollowerControl.parameters['Max Party Members']);
+	Tyruswoo.FollowerControl.param.searchLimit = Number(Tyruswoo.FollowerControl.parameters['Pathfinding Search Limit']);
 	
 	// Variables
 	Tyruswoo.FollowerControl._followerIndex = 0;
@@ -501,7 +410,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 				if (0 == this.followerIndex) {
 					return $gamePlayer;
 				} else if (this.followerIndex > 0 && $gamePlayer && $gamePlayer.followers) {
-					if (this.followerIndex < $gameParty.onMapMembers().length) {
+					if (this.followerIndex < $gameParty.size()) {
 						return $gamePlayer.followers().follower(this.followerIndex - 1);
 					} else {
 						return null; // No one's following at this index.
@@ -596,13 +505,12 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// follower_by_name
 	PluginManager.registerCommand(pluginName, "follower_by_name", args => {
 		if (args.followerName) {
-			let len = $gameParty.onMapMembers().length;
+			let len = $gameParty.battleMembers().length;
 			for (let i = 0; i < len; i++) {
-				let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
+				let actorId = $gameParty.battleMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 				let actorName = $dataActors[actorId].name; //Get the Database name of the actor, based on the actorId.
 				if (actorName == args.followerName) {
 					Tyruswoo.FollowerControl.followerIndex = i;
-					break;
 				}
 			}
 		}
@@ -611,42 +519,16 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// follower_by_actor_id
 	PluginManager.registerCommand(pluginName, "follower_by_actor_id", args => {
 		if (args.actorId) {
-			let len = $gameParty.onMapMembers().length;
+			let len = $gameParty.battleMembers().length;
 			for (let i = 0; i < len; i++) {
-				let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
+				let actorId = $gameParty.battleMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 				if (actorId == args.actorId) {
 					Tyruswoo.FollowerControl.followerIndex = i;
-					break;
 				}
 			}
 		}
 	});
-
-	// follower_by_position_variable
-	PluginManager.registerCommand(pluginName, "follower_by_position_variable", args => {
-		if (args.variableId) {
-			let followerIndex = $gameVariables.value(Number(args.variableId));
-			Tyruswoo.FollowerControl.followerIndex = followerIndex;
-		}
-	});
 	
-	// follower_by_actor_variable
-	PluginManager.registerCommand(pluginName, "follower_by_actor_variable", args => {
-		if (args.variableId) {
-			let targetActorId = $gameVariables.value(Number(args.variableId));
-			if (targetActorId) {
-				let len = $gameParty.onMapMembers().length;
-				for (let i = 0; i < len; i++) {
-					let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
-					if (actorId == targetActorId) {
-						Tyruswoo.FollowerControl.followerIndex = i;
-						break;
-					}
-				} // endfor i in follower lineup
-			} // endif there's a target actor ID
-		} // endif there's a variable ID
-	}); // end plugin command
-
 	// stop_chase
 	PluginManager.registerCommand(pluginName, "stop_chase", args => {
 		Tyruswoo.FollowerControl._stopChase = true;
@@ -679,50 +561,14 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			$gamePlayer.refresh();
 		}
 	});
-	
-	// change_actor_step_anime
-	PluginManager.registerCommand(pluginName, "change_actor_step_anime", args => {
-		let actorId = Number(args.actorId);
-		let stepAnime = 'true' == args.stepAnime;
-		if (actorId) {
-			let actor = $gameActors.actor(actorId);
-			actor.setStepAnime(stepAnime);
-		} else {
-			console.warn("Tyruswoo_FollowerControl change_actor_step_anime: no actor selected.");
-		}
-	});
 
 	//=============================================================================
 	// Game_Interpreter
 	//=============================================================================
 
 	// Alias method
-	// Conditional Branch
-	Tyruswoo.FollowerControl.Game_Interpreter_command111 =
-		Game_Interpreter.prototype.command111;
-	Game_Interpreter.prototype.command111 = function(params) {
-		if (4 == params[0] && 0 == params[2]) {
-			// Non-combat followers are included in checks for party membership.
-			const actor = $gameActors.actor(params[1]);
-			const n = params[3];
-			let result = $gameParty.eventConditionMembers().includes(actor);
-			this._branch[this._indent] = result;
-			if (false === this._branch[this._indent]) {
-				this.skipBranch();
-			}
-			return true;
-		} else {
-			// All other conditional branching works as usual.
-			return Tyruswoo.FollowerControl.Game_Interpreter_command111.call(
-				this, params);
-		}
-	};
-
-
-	// Alias method
 	// Transfer Player
-	Tyruswoo.FollowerControl.Game_Interpreter_command201 =
-		Game_Interpreter.prototype.command201;
+	Tyruswoo.FollowerControl.Game_Interpreter_command201 = Game_Interpreter.prototype.command201;
 	Game_Interpreter.prototype.command201 = function(params) {
 		if ($gameParty.inBattle() || $gameMessage.isBusy()) {
 			return false;
@@ -779,162 +625,31 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		if ($gameParty.inBattle()) {
 			return null;
 		} else if (param < 0) {
-			return Tyruswoo.FollowerControl.follower(); // Changed line.
+			return Tyruswoo.FollowerControl.follower(); //Changed line.
 		} else {
 			return Tyruswoo.FollowerControl.Game_Interpreter_character.call(this, param); //Default method.
 		}
 	};
 
 	//=============================================================================
-	// Game_Event
-	//=============================================================================
-
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Event_meetsConditions =
-		Game_Event.prototype.meetsConditions;
-	Game_Event.prototype.meetsConditions = function(page) {
-		if (page.conditions.actorValid) {
-			var actor = $gameActors.actor(page.conditions.actorId)
-			if (!$gameParty.eventConditionMembers().contains(actor)) {
-				return false;
-			}
-			// If you're here, the actor is in party.
-			// Run other condition checking as usual,
-			// except that the default actor checking is disabled.
-			page.conditions.actorValid = false;
-			let valid = Tyruswoo.FollowerControl.Game_Event_meetsConditions.call(
-				this, page);
-			page.conditions.actorValid = true;
-			return valid;
-		} else {
-			return Tyruswoo.FollowerControl.Game_Event_meetsConditions.call(
-				this, page);
-		}
-		const actorValid = page.conditions.actorValid;
-		page.conditions.actorValid = false;
-		var valid = Tyruswoo.FollowerControl.Game_Event_meetsConditions.call(
-			this, page);
-		page.conditions.actorValid = true;
-		return valid;
-	};
-
-	//=============================================================================
 	// Game_Actor
 	//=============================================================================
 
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Actor_setup = Game_Actor.prototype.setup;
-	Game_Actor.prototype.setup = function(actorId) {
-		Tyruswoo.FollowerControl.Game_Actor_setup.call(this, actorId);
-		// Check for and apply <stepAnime: true> notetag.
-		this._stepAnime = !!this.actor().note.match(
-			/<step(?:ping|[\-_ ]?anime)? ?: ?(?:on|true|yes|always)>/i);
-	};
-
 	// Alias method.
-	// If an actor's character image is set by a command,
-	// then reset the pose core to the new character image.
-	Tyruswoo.FollowerControl.Game_Actor_setCharacterImage =
-		Game_Actor.prototype.setCharacterImage;
+	// If an actor's character image is set by a command, then reset the pose core to the new character image.
+	Tyruswoo.FollowerControl.Game_Actor_setCharacterImage = Game_Actor.prototype.setCharacterImage;
 	Game_Actor.prototype.setCharacterImage = function(characterName, characterIndex) {
-		Tyruswoo.FollowerControl.Game_Actor_setCharacterImage.call(
-			this, characterName, characterIndex);
+		Tyruswoo.FollowerControl.Game_Actor_setCharacterImage.call(this, characterName, characterIndex);
 		this._characterNameCore = this.characterName();
-	};
-
-	// New method
-	Game_Actor.prototype.isNonCombat = function() {
-		return this._classId == Tyruswoo.FollowerControl.param.nonCombatClass;
-	};
-
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Actor_changeExp =
-		Game_Actor.prototype.changeExp;
-	Game_Actor.prototype.changeExp = function(exp, show) {
-		if (this.isNonCombat()) {
-			// Do nothing.
-			// Non-combat characters aren't affected by EXP changes.
-		} else {
-			// Do the usual.
-			Tyruswoo.FollowerControl.Game_Actor_changeExp.call(this, exp, show);
-		}
-	};
-
-	// New method
-	// Check whether this Actor has stepping animation turned on.
-	Game_Actor.prototype.hasStepAnime = function() {
-		return !!this._stepAnime;
-	};
-
-	// New method
-	// Change whether this Actor has stepping animation turned on.
-	// Since Actors are included in save data,
-	// this change persists for each save file.
-	Game_Actor.prototype.setStepAnime = function(value) {
-		this._stepAnime = value;
-		$gamePlayer.refresh();
 	};
 
 	//=============================================================================
 	// Game_Party
 	//=============================================================================
 	
-	// TODO: Check for uses of $gameParty.size() and account for anywhere
-	// that non-combat followers should count toward party size.
-
 	// Replacement method
 	Game_Party.prototype.maxBattleMembers = function() {
 		return Tyruswoo.FollowerControl.param.maxBattleMembers;
-	};
-
-	// Replacement method
-	// For most of the game's purposes, non-combat actors don't count.
-	// So potentialCombatMembers() replaces allMembers() in this method.
-	Game_Party.prototype.members = function() {
-		return this.inBattle() ? this.battleMembers() : this.potentialCombatMembers();
-	};
-
-	// Replacement method
-	// Non-combat members can't be battle members.
-	Tyruswoo.FollowerControl.Game_Party_battleMembers =
-		Game_Party.prototype.battleMembers;
-	Game_Party.prototype.battleMembers = function() {
-		return this.potentialCombatMembers()
-			.slice(0, this.maxBattleMembers())
-			.filter(actor => actor.isAppeared());
-	};
-
-	// New method
-	// Event conditions include all members, except when in battle,
-	// just like default RMMZ's definition for members.
-	// So out-of-battle checks will include non-combat members.
-	Game_Party.prototype.eventConditionMembers = function() {
-		return this.inBattle() ? this.battleMembers() : this.allMembers();
-	};
-
-	// New method
-	// Non-combat members are followers, but do not show up in battle
-	// or in the field menu.
-	Game_Party.prototype.nonCombatMembers = function() {
-		return this.allMembers().filter(function(actor) {
-			return actor.isNonCombat(); 
-		});
-	};
-
-	// New method
-	// This returns the follower lineup.
-	// Active battle party members, followed by non-combat members.
-	Game_Party.prototype.onMapMembers = function() {
-		return this.battleMembers().concat(this.nonCombatMembers());
-	};
-
-	// New method
-	// Returns only the party members who might ever participate in combat,
-	// whether they're active or reserve party members.
-	Game_Party.prototype.potentialCombatMembers = function() {
-		return this.allMembers().filter(function(actor) {
-			return !actor.isNonCombat();
-		});
 	};
 
 	//=============================================================================
@@ -1069,22 +784,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Game_Player
 	//=============================================================================
 
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Player_refresh =
-		Game_Player.prototype.refresh;
-	Game_Player.prototype.refresh = function() {
-		Tyruswoo.FollowerControl.Game_Player_refresh.call(this);
-		this.resetStepAnime();
-	};
-	
-	// New method
-	Game_Player.prototype.resetStepAnime = function() {
-		let actor = this.actor();
-		if (actor) {
-			this._stepAnime = actor.hasStepAnime();
-		}
-	};
-
 	// New method
 	Game_Player.prototype.actor = function() {
 		return $gameParty.battleMembers()[0];
@@ -1108,12 +807,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 	// New method
 	Game_Player.prototype.setStepAnime = function(stepAnime) {
-		// Changes to step animation only happen
-		// if the actor doesn't have step animation set to always on.
-		if (!this.actor() || !this.actor().hasStepAnime()) {
-			Game_Character.prototype.setStepAnime.call(this, stepAnime);
-		}
-
+		this._stepAnime = stepAnime;
 		if(!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setStepAnimeAll(stepAnime);
 		}
@@ -1162,19 +856,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	//=============================================================================
 	// Game_Followers
 	//=============================================================================
-
-	// Replacement method
-	// Followers are active battle members plus non-combat followers,
-	// so max follower count is calculated differently from RMMZ default.
-	Game_Followers.prototype.setup = function() {
-		this._data = [];
-		const maxMembers = $gameParty.maxBattleMembers() +
-			Tyruswoo.FollowerControl.param.maxNonCombatFollowers;
-		for (let i = 1; i < maxMembers; i++) {
-			this._data.push(new Game_Follower(i));
-		}
-	};
-
 
 	// Alias method
 	Tyruswoo.FollowerControl.Game_Followers_updateMove = Game_Followers.prototype.updateMove;
@@ -1238,29 +919,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Game_Follower
 	//=============================================================================
 	
-	// Alias method
-	Tyruswoo.FollowerControl.Game_Follower_refresh =
-		Game_Follower.prototype.refresh;
-	Game_Follower.prototype.refresh = function() {
-		Tyruswoo.FollowerControl.Game_Follower_refresh.call(this);
-		this.resetStepAnime();
-	};
-	
-	// New method
-	Game_Follower.prototype.resetStepAnime = function() {
-		let actor = this.actor();
-		if (actor) {
-			this._stepAnime = actor.hasStepAnime();
-		}
-	};
-	
-	// Replacement method
-	// The followers in the lineup are now defined distinctly from battle members,
-	// to allow for non-combat followers.
-	Game_Follower.prototype.actor = function() {
-		return $gameParty.onMapMembers()[this._memberIndex];
-	};
-
 	// Replacement method
 	// These atributes should be set when the player's attributes are set, rather than constantly updated.
 	Game_Follower.prototype.update = function() {
@@ -1281,16 +939,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// This allows followers to travel through walls when playtesting and holding Ctrl, just like the player (even if the followers have Through Off).
 	Game_Follower.prototype.isDebugThrough = function() {
 		return Input.isPressed("control") && $gameTemp.isPlaytest();
-	};
-
-	Game_Follower.prototype.setStepAnime = function(stepAnime) {
-		let actor = this.actor();
-		if (actor && actor.hasStepAnime()) {
-			// Don't change anything. Step animation stays on always.
-		} else {
-			// Do the usual.
-			Game_Character.prototype.setStepAnime.call(this, stepAnime);
-		}
 	};
 
 })();
