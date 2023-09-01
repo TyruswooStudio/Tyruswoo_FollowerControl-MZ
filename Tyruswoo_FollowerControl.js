@@ -36,18 +36,17 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc v1.2.1 Provides greater control of party follower movement! Allows event commands
+ * @plugindesc v1.0.1 Provides greater control of party follower movement! Allows event commands
  * targeting the "player" to affect any follower of your choosing!
  * @author Tyruswoo
  * @url https://www.tyruswoo.com
  *
- * @help Tyruswoo Follower Control for RPG Maker MZ
+ * @help Tyruswoo Follower Control for RPG Maker MZ Version 1.0.1
  * 
  * WARNING: This is an older plugin! It lacks features and improvements
  * present in the latest version. You can get the latest version for free
  * on Tyruswoo.com.
  *
- * ============================================================================
  * Plugin commands:
  *    Leader                   Selects the party leader. (Default.)
  *    Follower 1               Selects the 1st follower.
@@ -66,11 +65,11 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    Chase                    Allow followers to chase the leader. (Default.)
  *    Pose                     Change a party member's character image to pose.
  *    Reset Pose               Change a party member's to their default pose.
- * ============================================================================
+ * 
  * Plugin parameters:
  *    Max Party Members        Set how many party members are shown. Default 4.
  *    Search Limit             Set the pathfinding search limit. Default 12.
- * ============================================================================
+ *
  * Script calls: (Advanced. Use these within the Set Move Route command.)
  *    this.path(x, y)          Pathfind to the absolute coordinates indicated.
  *    this.path('event', id)   Pathfind to the event of ID number id.
@@ -83,7 +82,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    this.moveToward('e', id) Move toward the event of ID number id.
  *    this.moveToward('f', i)  Move toward the follower of position i.
  *    this.moveToward('L')     Move toward the party leader. May use 'l'.
- * ============================================================================
+ *
  * Basics of how to use this plugin:
  * 1. First, select the desired party member. This may be the leader, for
  *    default RPG Maker behavior. To control followers, select a follower.
@@ -101,7 +100,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * 4. After you are done with the eventing, remember to use the "Leader" and
  *    "Chase" plugin commands to return to default RPG Maker behavior, if
  *    desired.
- * ============================================================================
+ *
  * Advanced uses for this plugin:
  *  - Make common events with preset movement patterns for the party. Then,
  *    use these movement patterns for cutscenes throughout the game!
@@ -149,36 +148,15 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    have Through On, so if you want the followers to pathfind around
  *    solid obstacles, you will need to use Set Move Route on the follower to
  *    set Through Off.
- * ============================================================================
+ *
  * For more help using the Follower Control plugin, see Tyruswoo.com.
  * ============================================================================
  * Version History:
  *
  * v1.0  8/22/2020
  *        - Follower Control released for RPG Maker MZ!
- *
- * v1.1  8/25/2020
- *        - Removed a bug that caused Tyruswoo.FollowerControl._follower to be
- *          reverted to $gamePlayer whenever a Game_Interpreter closed. Now,
- *          the selected follower is remembered from one event to the next,
- *          (as long as the player stays in the same map). This also allows
- *          the Follower Control plugin to much more easily communicate with
- *          other plugins. For example, this allows Tyruswoo_TileControl to use
- *          information about the current follower in its plugin commands.
- *
- * v1.2  8/30/2020
- *        - Corrected bug in replacement method for the function
- *          Game_Interpreter.character(), in which if
- *          Tyruswoo.FollowerControl._follower was not defined using the
- *          Follower Control plugin, then the first instance of eventing (such
- *          as a Transfer Player event) could result in
- *          Game_Interpreter.character() returning null instead of returning
- *          $gamePlayer. Now, if Tyruswoo.FollowerControl._follower is not yet
- *          defined, Game_Interpreter.character() will never use a null value
- *          Tyruswoo.FollowerControl._follower, but will instead use
- *          $gamePlayer, as is the default behavior for the function.
  * 
- * v1.2.1  8/31/2023
+ * v1.0.1  8/31/2023
  *        - This plugin is now free and open source under the MIT license.
  * 
  * ============================================================================
@@ -298,8 +276,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *       Then, use Set Move Route on the "player" to move the follower.
  *
  * @arg actorId
- * @type actor
- * @text Actor
+ * @type number
+ * @min 1
+ * @text Actor ID
  * @desc Select a follower by actor ID.
  *       Must match the actor's ID number defined in the Database.
  *
@@ -480,6 +459,13 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Game_Interpreter
 	//=============================================================================
 
+	// Alias method.
+	Tyruswoo.FollowerControl.Game_Interpreter_clear = Game_Interpreter.prototype.clear;
+	Game_Interpreter.prototype.clear = function() {
+		Tyruswoo.FollowerControl.Game_Interpreter_clear.call(this);
+		Tyruswoo.FollowerControl._follower = $gamePlayer;
+	};
+
 	// Replacement method
 	// Transfer Player
 	Game_Interpreter.prototype.command201 = function(params) {
@@ -540,7 +526,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		if ($gameParty.inBattle()) {
 			return null;
 		} else if (param < 0) {
-			return Tyruswoo.FollowerControl._follower ? Tyruswoo.FollowerControl._follower : $gamePlayer; //Changed line.
+			return Tyruswoo.FollowerControl._follower; //Changed line.
 		} else if (this.isOnCurrentMap()) {
 			return $gameMap.event(param > 0 ? param : this._eventId);
 		} else {

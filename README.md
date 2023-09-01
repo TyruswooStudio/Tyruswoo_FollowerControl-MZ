@@ -3,7 +3,7 @@ It lacks the features and improvements of this plugin's later versions.
 To get the latest version for free, visit
 [Tyruswoo.com](https://www.tyruswoo.com).
 
-# Tyruswoo Follower Control v1.2.1 for RPG Maker MZ
+# Tyruswoo Follower Control v1.0.1 for RPG Maker MZ
 
 Provides greater control of party follower movement!
 
@@ -36,7 +36,7 @@ Plus, unlimited followers!
 
 | Parameter | Meaning |
 |-----------|---------|
-| Max Battle Members        | Set how many party members can be in battle at a time. The current battle party will also be visible in the follower lineup. Default 4. |
+| Max Party Members        | Set how many party members can be in battle at a time. The current battle party will also be visible in the follower lineup. Default 4. |
 | Search Limit              | Set the pathfinding search limit. Default 12. |
 
 ## Script calls
@@ -55,17 +55,6 @@ Plus, unlimited followers!
 | `this.moveToward('e', id)` | Move toward the event of ID number id. |
 | `this.moveToward('f', i)`  | Move toward the follower of position i. |
 | `this.moveToward('L')`     | Move toward the party leader. May use 'l'. |
-| `this.path($gamePlayer.x+n, $gamePlayer.y+m)` | Where n and m are integer numbers to indicate coordinates relative to the player's position. Pathfind to the coordinates indicated. (May use +n or -n, +m or -m.) |
-
-   Note that this.path() scripts are to be used within Set Move Route
-   commands, and only result in taking 1 step on the path. Use multiple
-   this.path() scripts in the move route for multiple steps on the path.
-
-   Note also that this.path() seeks a path around obstacles, whereas
-   this.moveToward() may result in bumping into obstacles. When using
-   this.path(), be sure the character's Through is Off to find a path around
-   obstacles. If Through is On, then this.path() will cause the character to
-   move through obstacles, instead of pathing around obstacles.
 
 ## Basics of how to use this plugin
 1. First, select the desired party member. This may be the leader, for
@@ -139,28 +128,7 @@ Plus, unlimited followers!
 **v1.0** - 8/22/2020
 - Follower Control released for RPG Maker MZ!
 
-**v1.1** - 8/25/2020
-- Removed a bug that caused `Tyruswoo.FollowerControl._follower` to be
-  reverted to $gamePlayer whenever a `Game_Interpreter` closed. Now,
-  the selected follower is remembered from one event to the next,
-  (as long as the player stays in the same map). This also allows
-  the Follower Control plugin to much more easily communicate with
-  other plugins. For example, this allows `Tyruswoo_TileControl` to use
-  information about the current follower in its plugin commands.
-
-**v1.2** - 8/30/2020
-- Corrected bug in replacement method for the function
-  `Game_Interpreter.character()`, in which if
-  `Tyruswoo.FollowerControl._follower` was not defined using the
-  Follower Control plugin, then the first instance of eventing (such
-  as a Transfer Player event) could result in
-  `Game_Interpreter.character()` returning null instead of returning
-  $gamePlayer. Now, if `Tyruswoo.FollowerControl._follower` is not yet
-  defined, `Game_Interpreter.character()` will never use a null value
-  `Tyruswoo.FollowerControl._follower`, but will instead use
-  $gamePlayer, as is the default behavior for the function.
-
-**v1.2.1** - 8/31/2023
+**v1.0.1** - 8/31/2023
 - This older plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
 > **Remember, only you can build your dreams!**
