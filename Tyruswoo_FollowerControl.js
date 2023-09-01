@@ -1,7 +1,7 @@
 //=============================================================================
 // Follower Control
 // For RPG Maker MZ
-// By Tyruswoo and McKathlin
+// By Tyruswoo
 //=============================================================================
 
 /*
@@ -36,9 +36,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc v3.0.1 Provides greater control of party follower movement! Allows event commands
+ * @plugindesc v1.3.1 Provides greater control of party follower movement! Allows event commands
  * targeting the "player" to affect any follower of your choosing!
- * @author Tyruswoo and McKathlin
+ * @author Tyruswoo
  * @url https://www.tyruswoo.com
  *
  * @help Tyruswoo Follower Control for RPG Maker MZ
@@ -65,7 +65,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    Stop Chase               Prevent followers from chasing the leader.
  *    Chase                    Allow followers to chase the leader. (Default.)
  *    Pose                     Change a party member's character image to pose.
- *    Reset Pose               Change a party member to their default pose.
+ *    Reset Pose               Change a party member's to their default pose.
  * ============================================================================
  * Plugin parameters:
  *    Max Party Members        Set how many party members are shown. Default 4.
@@ -193,25 +193,8 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *        - Changed the method Game_Interpreter.character() to an alias method.
  *          This increases the chance of compatibility with other plugins
  *          that use the Game_Interpreter.character() method.
- *
- * v3.0  8/27/2021
- *        - Fixed a bug in which it was possible to select an absent follower.
- *          (Followers always technically exist, even if there is no associated
- *          actor. If there is no actor, the follower is absent/invisible.)
- *          This bug manifested when the player had a small party, and a
- *          follower was selected that was less than the Max Party Size but
- *          greater than the current party size. This "absent" follower still
- *          exists, but does not have an associated actor and therefore no
- *          image. If Show Balloon Icon or Show Animation was used, then the
- *          balloon icon or animation would appear at the location where the
- *          "absent" follower is located. Note: This is similar to the bugfix
- *          in Follower Control v2.2 for RPG Maker MV. Big thanks to Lei-Yan
- *          for bringing this bug to my attention!
- *        - Fixed a rare bug affecting loading and saving in some projects.
- *          Thanks to Edsephiroth for bringing this to our attention and
- *          helping us test!
  * 
- * v3.0.1  8/31/2023
+ * v1.3.1  8/31/2023
  *        - This plugin is now free and open source under the MIT license.
  * 
  * ============================================================================
@@ -374,73 +357,19 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	Tyruswoo.FollowerControl.param.searchLimit = Number(Tyruswoo.FollowerControl.parameters['Pathfinding Search Limit']);
 	
 	// Variables
-	Tyruswoo.FollowerControl._followerIndex = 0;
+	Tyruswoo.FollowerControl._follower = $gamePlayer;
 	Tyruswoo.FollowerControl._stopChase = false;
 
 	//=============================================================================
-	// Follower Control Functions and Properties
+	// Follower Control Functions
 	//=============================================================================
-
-	Object.defineProperties(Tyruswoo.FollowerControl, {
-		actor: {
-			get: function() {
-				let follower = this._follower;
-				return follower ? follower.actor() : null;
-			},
-			enumerable: false
-		},
-		followerIndex: {
-			get: function() {
-				return this._followerIndex;
-			},
-			set: function(value) {
-				this._followerIndex = value;
-				if (this._followerIndex > 0) {
-					console.log("FollowerControl: Move Route commands now affect Follower ", this._followerIndex);
-				} else if (this._followerIndex === 0) {
-					console.log("FollowerControl: Move Route commands now affect the party Leader.");
-				} else {
-					console.warn("FollowerControl: follower index set to unexpected number " + this._followerIndex);
-				}
-			},
-			enumerable: true
-		},
-		_follower: {
-			get: function() {
-				if (0 == this.followerIndex) {
-					return $gamePlayer;
-				} else if (this.followerIndex > 0 && $gamePlayer && $gamePlayer.followers) {
-					if (this.followerIndex < $gameParty.size()) {
-						return $gamePlayer.followers().follower(this.followerIndex - 1);
-					} else {
-						return null; // No one's following at this index.
-					}
-				} else {
-					console.warn("FollowerControl: Follower property could not find Follower " + this.followerIndex);
-					return null;
-				}
-			},
-			set: function(value) {
-				if (value === $gamePlayer) {
-					this.followerIndex = 0; // party leader
-				} else if (!$gamePlayer.followers() || null === value || undefined === value) {
-					console.warn("FollowerControl: Couldn't set follower.");
-					this.followerIndex = -1;
-				} else {
-					var idx = $gamePlayer.followers()._data.indexOf(value);
-					this.followerIndex = idx >= 0 ? idx + 1 : -1;
-				}
-			},
-			enumerable: false
-		}
-	});
 
 	// New method.
 	// This method returns any current valid value of the Tyruswoo.FollowerControl._follower variable.
 	// Possible returned values: By default, $gamePlayer. If Follower Control has selected another follower, that follower is used.
-	// However, if a follower was attempted to be selected, but that follower does not exist, then no party member is selected (return null).
+	// However, if a follower was attempted to be selected, but that follower does not exist (is undefined), then no party member is selected ("undefined" is selected).
 	Tyruswoo.FollowerControl.follower = function() {
-		return Tyruswoo.FollowerControl._follower;
+		return (Tyruswoo.FollowerControl._follower || typeof Tyruswoo.FollowerControl._follower == "undefined") ? Tyruswoo.FollowerControl._follower : $gamePlayer;
 	};
 	
 	//=============================================================================
@@ -449,84 +378,97 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	
 	// leader
 	PluginManager.registerCommand(pluginName, "leader", args => {
-		Tyruswoo.FollowerControl.followerIndex = 0;
+		Tyruswoo.FollowerControl._follower = $gamePlayer;
 	});
 	
 	// follower_1
 	PluginManager.registerCommand(pluginName, "follower_1", args => {
-		Tyruswoo.FollowerControl.followerIndex = 1;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(0);
 	});
 
 	// follower_2
 	PluginManager.registerCommand(pluginName, "follower_2", args => {
-		Tyruswoo.FollowerControl.followerIndex = 2;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(1);
 	});
 
 	// follower_3
 	PluginManager.registerCommand(pluginName, "follower_3", args => {
-		Tyruswoo.FollowerControl.followerIndex = 3;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(2);
 	});
 	
 	// follower_4
 	PluginManager.registerCommand(pluginName, "follower_4", args => {
-		Tyruswoo.FollowerControl.followerIndex = 4;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(3);
 	});
 
 	// follower_5
 	PluginManager.registerCommand(pluginName, "follower_5", args => {
-		Tyruswoo.FollowerControl.followerIndex = 5;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(4);
 	});
 
 	// follower_6
 	PluginManager.registerCommand(pluginName, "follower_6", args => {
-		Tyruswoo.FollowerControl.followerIndex = 6;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(5);
 	});
 	
 	// follower_7
 	PluginManager.registerCommand(pluginName, "follower_7", args => {
-		Tyruswoo.FollowerControl.followerIndex = 7;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(6);
 	});
 	
 	// follower_8
 	PluginManager.registerCommand(pluginName, "follower_8", args => {
-		Tyruswoo.FollowerControl.followerIndex = 8;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(7);
 	});
 	
 	// follower_9
 	PluginManager.registerCommand(pluginName, "follower_9", args => {
-		Tyruswoo.FollowerControl.followerIndex = 9;
+		Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(8);
 	});
 
 	// follower_by_position
 	PluginManager.registerCommand(pluginName, "follower_by_position", args => {
-		Tyruswoo.FollowerControl.followerIndex = Number(args.followerId);
+		if(args.followerId == 0) {
+			Tyruswoo.FollowerControl._follower = $gamePlayer;
+		} else if(args.followerId >= 1) {
+			Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(args.followerId - 1);
+		};
 	});
 
 	// follower_by_name
 	PluginManager.registerCommand(pluginName, "follower_by_name", args => {
-		if (args.followerName) {
+		if(args.followerName) {
 			let len = $gameParty.battleMembers().length;
 			for (let i = 0; i < len; i++) {
 				let actorId = $gameParty.battleMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 				let actorName = $dataActors[actorId].name; //Get the Database name of the actor, based on the actorId.
-				if (actorName == args.followerName) {
-					Tyruswoo.FollowerControl.followerIndex = i;
+				if(actorName == args.followerName) {
+					if(i == 0) {
+						Tyruswoo.FollowerControl._follower = $gamePlayer;
+					} else if(i >= 1) {
+						Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(i - 1);
+					};
+					// console.log("Tyruswoo Follower Control:  Move Route commands now affect " + args.followerName + ", who is Follower", i);
 				}
-			}
-		}
+			};
+		};
 	});
 
 	// follower_by_actor_id
 	PluginManager.registerCommand(pluginName, "follower_by_actor_id", args => {
-		if (args.actorId) {
+		if(args.actorId) {
 			let len = $gameParty.battleMembers().length;
 			for (let i = 0; i < len; i++) {
 				let actorId = $gameParty.battleMembers()[i].actorId(); //Get the actorId that belongs to this follower.
-				if (actorId == args.actorId) {
-					Tyruswoo.FollowerControl.followerIndex = i;
+				if(actorId == args.actorId) {
+					if(i == 0) {
+						Tyruswoo.FollowerControl._follower = $gamePlayer;
+					} else if(i >= 1) {
+						Tyruswoo.FollowerControl._follower = $gamePlayer.followers().follower(i - 1);
+					};
 				}
-			}
-		}
+			};
+		};
 	});
 	
 	// stop_chase
@@ -541,25 +483,25 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 	// pose
 	PluginManager.registerCommand(pluginName, "pose", args => {
-		let actor = Tyruswoo.FollowerControl.actor;
-		if (actor) {
-			if (!actor._characterNameCore) {
+		let actor = Tyruswoo.FollowerControl._follower.actor();
+		if(actor) {
+			if(!actor._characterNameCore) {
 				actor._characterNameCore = actor.characterName();
 			}
 			let core = actor._characterNameCore;
 			let pose = core + "_" + args.poseName;
 			actor._characterName = pose;
 			$gamePlayer.refresh();
-		}
+		};
 	});
 
 	// reset_pose
 	PluginManager.registerCommand(pluginName, "reset_pose", args => {
-		let actor = Tyruswoo.FollowerControl.actor;
-		if (actor) {
+		let actor = Tyruswoo.FollowerControl._follower.actor();
+		if(actor) {
 			actor._characterName = actor._characterNameCore;
 			$gamePlayer.refresh();
-		}
+		};
 	});
 
 	//=============================================================================
@@ -586,34 +528,31 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			y = $gameVariables.value(params[3]);
 		};
 		if (mapId !== $gameMap.mapId()) {  //If transferring to a different map, then always transfer the leader, with followers.
-			Tyruswoo.FollowerControl._stopChase = false; //If player goes to a new map, followers will resume chase.
-			Tyruswoo.FollowerControl.followerIndex = 0;	//If player goes to a new map, reset selected follower to the leader.
+			Tyruswoo.FollowerControl._stopChase = false;		//If player goes to a new map, followers will resume chase.
+			Tyruswoo.FollowerControl._follower = $gamePlayer;	//If player goes to a new map, reset selected follower to the leader.
 			return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
-		} else if (Tyruswoo.FollowerControl.followerIndex === 0) {
+		} else if (Tyruswoo.FollowerControl._follower === $gamePlayer) {
 			if (!Tyruswoo.FollowerControl._stopChase) { //Followers are chasing the leader, so transfer leader with followers.
 				return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
 			} else { //Followers are not chasing the leader, so simply teleport the leader within the map, like any other follower.
 			    Game_Character.prototype.locate.call($gamePlayer, x, y);
 				if (!Imported.Tyruswoo_CameraControl || (Imported.Tyruswoo_CameraControl && $gameMap._camFollow == "player")) {
 					$gamePlayer.center(x, y);
-				}
+				};
 				$gamePlayer.makeEncounterCount();
 				if ($gamePlayer.isInVehicle()) {
 					$gamePlayer.vehicle().refresh();
-				}
-			}
+				};
+			};
 		} else {  //Transfer a follower.
-			const follower = Tyruswoo.FollowerControl._follower;
-			if (follower) {
-				follower.locate(x, y);
-				if (params[4] > 0) { // Set follower direction
-					let d = params[4];
-					if (!follower.isDirectionFixed() && d) {
-						follower._direction = d;
-					}
-				}
-			}
-		}
+			Tyruswoo.FollowerControl._follower.locate(x, y);
+			if (params[4] > 0) { // Set follower direction
+				let d = params[4];
+				if (!Tyruswoo.FollowerControl._follower.isDirectionFixed() && d) {
+					Tyruswoo.FollowerControl._follower._direction = d;
+				};
+			};
+		};
 		return true;
 	};
 	
@@ -628,7 +567,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			return Tyruswoo.FollowerControl.follower(); //Changed line.
 		} else {
 			return Tyruswoo.FollowerControl.Game_Interpreter_character.call(this, param); //Default method.
-		}
+		};
 	};
 
 	//=============================================================================
@@ -671,7 +610,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			this._searchLimit = value; //Set the searchLimit for this character.
 		} else {
 			this._searchLimit = Tyruswoo.FollowerControl.param.searchLimit; //Default searchLimit.
-		}
+		};
 	};
 
 	//=============================================================================

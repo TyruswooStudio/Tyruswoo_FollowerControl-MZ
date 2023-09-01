@@ -3,7 +3,7 @@ It lacks the features and improvements of this plugin's later versions.
 To get the latest version for free, visit
 [Tyruswoo.com](https://www.tyruswoo.com).
 
-# Tyruswoo Follower Control v3.0.1 for RPG Maker MZ
+# Tyruswoo Follower Control v1.3.1 for RPG Maker MZ
 
 Provides greater control of party follower movement!
 
@@ -176,23 +176,7 @@ Plus, unlimited followers!
   This increases the chance of compatibility with other plugins
   that use the `Game_Interpreter.character()` method.
 
-**v3.0** - 8/27/2021
-- Fixed a bug in which it was possible to select an absent follower.
-  (Followers always technically exist, even if there is no associated
-  actor. If there is no actor, the follower is absent/invisible.)
-  This bug manifested when the player had a small party, and the
-  follower selected was less than the Max Party Size but greater than
-  the current party size. This "absent" follower still exists, but
-  has no associated actor and therefore no image. If Show Balloon
-  Icon or Show Animation was used, then the balloon icon or animation
-  would appear at the "absent" follower's location. Note: We made a
-  similar bugfix in Follower Control v2.2 for RPG Maker MV.
-  Big thanks to Lei-Yan for bringing this bug to our attention!
-- Fixed a rare bug affecting loading and saving in some projects.
-  Thanks to Edsephiroth for bringing this to our attention and
-  helping us test!
-
-**v3.0.1** - 8/31/2023
+**v1.3.1** - 8/31/2023
 - This older plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
 > **Remember, only you can build your dreams!**
