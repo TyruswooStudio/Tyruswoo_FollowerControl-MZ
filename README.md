@@ -3,7 +3,7 @@ It lacks the features and improvements of this plugin's later versions.
 To get the latest version for free, visit
 [Tyruswoo.com](https://www.tyruswoo.com).
 
-# Tyruswoo Follower Control v1.3.1 for RPG Maker MZ
+# Tyruswoo Follower Control v1.2.1 for RPG Maker MZ
 
 Provides greater control of party follower movement!
 
@@ -160,23 +160,7 @@ Plus, unlimited followers!
   `Tyruswoo.FollowerControl._follower`, but will instead use
   $gamePlayer, as is the default behavior for the function.
 
-**v1.3** - 9/12/2020
-- Now, if a follower is selected, and the follower does not exist,
-  the leader is no longer selected; instead, the non-existent
-  follower is selected. Therefore, eventing intended for a follower
-  that is not present will have no effect, instead of affecting the
-  party leader.
-- Added the `Tyruswoo.FollowerControl.follower()` function, which
-  allows improves compatability with other plugins that may need to
-  access the current valid follower (if available) stored in the
-  `Tyruswoo.FollowerControl._follower` variable. Plugins that may use
-  this information include `Tyruswoo_TileControl` and
-  `Tyruswoo_CameraControl`.
-- Changed the method `Game_Interpreter.character()` to an alias method.
-  This increases the chance of compatibility with other plugins
-  that use the `Game_Interpreter.character()` method.
-
-**v1.3.1** - 8/31/2023
+**v1.2.1** - 8/31/2023
 - This older plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
 > **Remember, only you can build your dreams!**

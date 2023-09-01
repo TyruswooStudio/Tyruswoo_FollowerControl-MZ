@@ -36,7 +36,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc v1.3.1 Provides greater control of party follower movement! Allows event commands
+ * @plugindesc v1.2.1 Provides greater control of party follower movement! Allows event commands
  * targeting the "player" to affect any follower of your choosing!
  * @author Tyruswoo
  * @url https://www.tyruswoo.com
@@ -177,24 +177,8 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *          defined, Game_Interpreter.character() will never use a null value
  *          Tyruswoo.FollowerControl._follower, but will instead use
  *          $gamePlayer, as is the default behavior for the function.
- *
- * v1.3  9/12/2020
- *        - Now, if a follower is selected, and the follower does not exist,
- *          the leader is no longer selected; instead, the non-existent
- *          follower is selected. Therefore, eventing intended for a follower
- *          that is not present will have no effect, instead of affecting the
- *          party leader.
- *        - Added the Tyruswoo.FollowerControl.follower() function, which
- *          allows improves compatability with other plugins that may need to
- *          access the current valid follower (if available) stored in the
- *          Tyruswoo.FollowerControl._follower variable. Plugins that may use
- *          this information include Tyruswoo_TileControl and
- *          Tyruswoo_CameraControl.
- *        - Changed the method Game_Interpreter.character() to an alias method.
- *          This increases the chance of compatibility with other plugins
- *          that use the Game_Interpreter.character() method.
  * 
- * v1.3.1  8/31/2023
+ * v1.2.1  8/31/2023
  *        - This plugin is now free and open source under the MIT license.
  * 
  * ============================================================================
@@ -359,18 +343,6 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Variables
 	Tyruswoo.FollowerControl._follower = $gamePlayer;
 	Tyruswoo.FollowerControl._stopChase = false;
-
-	//=============================================================================
-	// Follower Control Functions
-	//=============================================================================
-
-	// New method.
-	// This method returns any current valid value of the Tyruswoo.FollowerControl._follower variable.
-	// Possible returned values: By default, $gamePlayer. If Follower Control has selected another follower, that follower is used.
-	// However, if a follower was attempted to be selected, but that follower does not exist (is undefined), then no party member is selected ("undefined" is selected).
-	Tyruswoo.FollowerControl.follower = function() {
-		return (Tyruswoo.FollowerControl._follower || typeof Tyruswoo.FollowerControl._follower == "undefined") ? Tyruswoo.FollowerControl._follower : $gamePlayer;
-	};
 	
 	//=============================================================================
 	// PluginManager
@@ -508,13 +480,12 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Game_Interpreter
 	//=============================================================================
 
-	// Alias method
+	// Replacement method
 	// Transfer Player
-	Tyruswoo.FollowerControl.Game_Interpreter_command201 = Game_Interpreter.prototype.command201;
 	Game_Interpreter.prototype.command201 = function(params) {
 		if ($gameParty.inBattle() || $gameMessage.isBusy()) {
 			return false;
-		};
+		}
 		let mapId, x, y;
 		if (params[0] === 0) {
 			// Direct designation
@@ -526,48 +497,55 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			mapId = $gameVariables.value(params[1]);
 			x = $gameVariables.value(params[2]);
 			y = $gameVariables.value(params[3]);
-		};
+		}
 		if (mapId !== $gameMap.mapId()) {  //If transferring to a different map, then always transfer the leader, with followers.
 			Tyruswoo.FollowerControl._stopChase = false;		//If player goes to a new map, followers will resume chase.
 			Tyruswoo.FollowerControl._follower = $gamePlayer;	//If player goes to a new map, reset selected follower to the leader.
-			return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
+			$gamePlayer.reserveTransfer(mapId, x, y, params[4], params[5]);
+			this.setWaitMode("transfer");
 		} else if (Tyruswoo.FollowerControl._follower === $gamePlayer) {
 			if (!Tyruswoo.FollowerControl._stopChase) { //Followers are chasing the leader, so transfer leader with followers.
-				return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
+				$gamePlayer.reserveTransfer(mapId, x, y, params[4], params[5]);
+				this.setWaitMode("transfer");
 			} else { //Followers are not chasing the leader, so simply teleport the leader within the map, like any other follower.
 			    Game_Character.prototype.locate.call($gamePlayer, x, y);
-				if (!Imported.Tyruswoo_CameraControl || (Imported.Tyruswoo_CameraControl && $gameMap._camFollow == "player")) {
+				if (Imported.Tyruswoo_CameraControl) { //Check if the Tyruswoo_CameraControl plugin is installed and active.
+					if ($gameMap._camFollow === 'player') {
+						$gamePlayer.center(x, y);
+					}
+				} else {
 					$gamePlayer.center(x, y);
-				};
+				}
 				$gamePlayer.makeEncounterCount();
 				if ($gamePlayer.isInVehicle()) {
 					$gamePlayer.vehicle().refresh();
-				};
-			};
+				}
+			}
 		} else {  //Transfer a follower.
 			Tyruswoo.FollowerControl._follower.locate(x, y);
 			if (params[4] > 0) { // Set follower direction
 				let d = params[4];
 				if (!Tyruswoo.FollowerControl._follower.isDirectionFixed() && d) {
 					Tyruswoo.FollowerControl._follower._direction = d;
-				};
-			};
-		};
+				}
+			}
+		}
 		return true;
 	};
 	
-	// Alias method
+	// Replacement method
 	// Note that this method is called by various commands, including Set Movement Route, Show Animation, and Show Balloon Icon.
 	// This method is also called by the Game_Interpreter.updateWaitMode function.
-	Tyruswoo.FollowerControl.Game_Interpreter_character = Game_Interpreter.prototype.character;
 	Game_Interpreter.prototype.character = function(param) {
 		if ($gameParty.inBattle()) {
 			return null;
 		} else if (param < 0) {
-			return Tyruswoo.FollowerControl.follower(); //Changed line.
+			return Tyruswoo.FollowerControl._follower ? Tyruswoo.FollowerControl._follower : $gamePlayer; //Changed line.
+		} else if (this.isOnCurrentMap()) {
+			return $gameMap.event(param > 0 ? param : this._eventId);
 		} else {
-			return Tyruswoo.FollowerControl.Game_Interpreter_character.call(this, param); //Default method.
-		};
+			return null;
+		}
 	};
 
 	//=============================================================================
