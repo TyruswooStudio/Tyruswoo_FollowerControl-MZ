@@ -36,7 +36,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc v1.0.1 Provides greater control of party follower movement! Allows event commands
+ * @plugindesc MZ v1.0.1 Provides greater control of party follower movement! Allows event commands
  * targeting the "player" to affect any follower of your choosing!
  * @author Tyruswoo
  * @url https://www.tyruswoo.com
