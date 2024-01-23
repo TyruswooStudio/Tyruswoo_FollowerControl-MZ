@@ -1094,7 +1094,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// This method used to be the path method used in Follower Control v1.09, but has been renamed as moveToward,
 	// because the improved path method of Follower Control v2.00 allows for avoiding obstacles.
 	Game_Character.prototype.moveToward = function(target_x, target_y) {
-		if(typeof target_x === 'string') {
+		if (typeof target_x === 'string') {
 			target_x = target_x.toLowerCase().charAt(0);
 		};
 		switch(target_x) {
@@ -1102,7 +1102,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 				this.moveTowardCharacter($gameMap.event(target_y));
 				break;
 			case 'f': //If target_x is the word 'follower', then target_y is the follower's marching order.
-				if(target_y <= 0) {
+				if (target_y <= 0) {
 					this.moveTowardPlayer();
 				} else {
 					this.moveTowardCharacter($gamePlayer.followers().follower(target_y - 1));
@@ -1121,7 +1121,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Keep in mind that the character must have Through Off in order to recognize obstacles in pathfinding.
 	Game_Character.prototype.path = function(target_x, target_y) {
 		let direction = 0;
-		if(typeof target_x === 'string') {
+		if (typeof target_x === 'string') {
 			target_x = target_x.toLowerCase().charAt(0);
 		};
 		switch(target_x) {
@@ -1130,7 +1130,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 				direction = this.findDirectionTo(targetCharacter.x, targetCharacter.y);
 				break;
 			case 'f': //If target_x is the word 'follower', then target_y is the follower's marching order.
-				if(target_y <= 0) {
+				if (target_y <= 0) {
 					var targetCharacter = $gamePlayer;
 					direction = this.findDirectionTo(targetCharacter.x, targetCharacter.y);
 				} else {
@@ -1145,7 +1145,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			default: //By default, the target_x is an x coordinate on the map, and the target_y is a y coordinate on the map.
 				direction = this.findDirectionTo(target_x, target_y);
 		};
-		if(direction > 0) {
+		if (direction > 0) {
 			this.executeMove(direction);
 		};
 	};
@@ -1185,7 +1185,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Replacement method
 	Game_Player.prototype.jump = function(xPlus, yPlus) {
 		Game_Character.prototype.jump.call(this, xPlus, yPlus);
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.jumpAll();
 		};
 	};
@@ -1193,7 +1193,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setOpacity = function(opacity) {
 		this._opacity = opacity;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setOpacityAll(opacity);
 		}
 	};
@@ -1206,7 +1206,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			Game_Character.prototype.setStepAnime.call(this, stepAnime);
 		}
 
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setStepAnimeAll(stepAnime);
 		}
 	};
@@ -1214,7 +1214,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setDirectionFix = function(directionFix) {
 		this._directionFix = directionFix;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setDirectionFixAll(directionFix);
 		}
 	};
@@ -1222,7 +1222,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setTransparent = function(transparent) {
 		this._transparent = transparent;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setTransparentAll(transparent);
 		}
 	};
@@ -1230,7 +1230,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setWalkAnime = function(walkAnime) {
 		this._walkAnime = walkAnime;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setWalkAnimeAll(walkAnime);
 		}
 	};
@@ -1238,7 +1238,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setBlendMode = function(blendMode) {
 		this._blendMode = blendMode;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setBlendModeAll(blendMode);
 		}
 	};
@@ -1246,7 +1246,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	Game_Player.prototype.setMoveSpeed = function(moveSpeed) {
 		this._moveSpeed = moveSpeed;
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this._followers.setMoveSpeedAll(moveSpeed);
 		}
 	};
@@ -1256,7 +1256,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	Game_Player.prototype.lastFollower = function() {
 		var lastFollower = this;
 		var partySize = $gameParty.allMembers().length;
-		if(partySize > 1) {
+		if (partySize > 1) {
 			lastFollower = this.followers().follower(partySize - 2); // -1 because leader is not a follower, and another -1 because array starts at zero.
 		}
 		return lastFollower;
@@ -1282,7 +1282,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Alias method
 	Tyruswoo.FollowerControl.Game_Followers_updateMove = Game_Followers.prototype.updateMove;
 	Game_Followers.prototype.updateMove = function() {
-		if(Tyruswoo.FollowerControl._stopChase) {
+		if (Tyruswoo.FollowerControl._stopChase) {
 			return false;
 		};
 		Tyruswoo.FollowerControl.Game_Followers_updateMove.call(this);
@@ -1368,7 +1368,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// These atributes should be set when the player's attributes are set, rather than constantly updated.
 	Game_Follower.prototype.update = function() {
 		Game_Character.prototype.update.call(this);
-		if(!Tyruswoo.FollowerControl._stopChase) {
+		if (!Tyruswoo.FollowerControl._stopChase) {
 			this.setMoveSpeed($gamePlayer.realMoveSpeed());
 		};
 		//this.setOpacity($gamePlayer.opacity());
@@ -1410,10 +1410,10 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	// Get the Actor list from one of the saved party slots.
 	Game_Party.prototype.getSavedParty = function(partyId) {
-		if(!this._savedParties) {
+		if (!this._savedParties) {
 			this._savedParties = [];
 		}
-		if(partyId && this._savedParties[partyId]) {
+		if (partyId && this._savedParties[partyId]) {
 			return this._savedParties[partyId];
 		} else {
 			throw new Error("Invalid Saved Party ID: " + partyId);
@@ -1423,13 +1423,13 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// New method
 	// Save an Actor list to one of the saved party slots.
 	Game_Party.prototype.saveParty = function(partyId, actorList) {
-		if(!this._savedParties) {
+		if (!this._savedParties) {
 			this._savedParties = [];
 		}
-		if(partyId && actorList) {
+		if (partyId && actorList) {
 			this._savedParties[partyId] = actorList;
 		} else {
-			if(!partyId) {
+			if (!partyId) {
 				throw new Error("Tyruswoo_FollowerControl Game_Party.saveParty(): Invalid Saved Party ID: " + partyId);
 			} else if (!actorList) {
 				throw new Error("Tyruswoo_FollowerControl Game_Party.saveParty(): Invalid actorList: " + actorList);
