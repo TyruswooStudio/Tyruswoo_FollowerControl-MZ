@@ -36,7 +36,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc MZ v5.0.1 Provides greater control of party follower movement! Allows event commands targeting the "player" to affect any follower!
+ * @plugindesc MZ v6.0.0 Provides greater control of party follower movement! Allows event commands targeting the "player" to affect any follower!
  * @author Tyruswoo and McKathlin
  * @url https://www.tyruswoo.com
  *
@@ -270,6 +270,17 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * 
  * v5.0.1  8/30/2023
  *         - This plugin is now free and open source under the MIT license.
+ * 
+ * v6.0.0  1/23/2024
+ *         - Each event now starts with the Player as the selected follower,
+ *           and its follower selection is independent from other events'
+ *           follower selections. (A common event uses the follower selection
+ *           of the event that called it.)
+ *         - It is now possible to have an individual follower stop chase
+ *           or resume chase.
+ *         - Fixed the bug where the game got stuck when Gather Followers was
+ *           called when followers were non-chasing. Followers now always
+ *           resume chase when the Gather Followers command is used.
  * ============================================================================
  * MIT License
  *
@@ -427,11 +438,31 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  * @text Stop Chase
  * @desc Prevent the followers from chasing the leader.
  *       Then, you can move the leader without the followers chasing.
+ * 
+ * @arg target
+ * @type select
+ * @option All Followers
+ * @value all
+ * @option Selected Follower
+ * @value selected
+ * @default all
+ * @desc Whether all followers, or only the selected follower,
+ * will stop following the leader.
  *
  * @command chase
  * @text Chase
  * @desc Allow the followers to chase the leader.
  *       This is the default for RPG Maker.
+ * 
+ * @arg target
+ * @type select
+ * @option All Followers
+ * @value all
+ * @option Selected Follower
+ * @value selected
+ * @default all
+ * @desc Whether all followers, or only the selected follower,
+ * will resume following the leader.
  *
  * @command pose
  * @text Pose
@@ -504,7 +535,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  */
 
 (() => {
-    const pluginName = "Tyruswoo_FollowerControl";
+	const pluginName = "Tyruswoo_FollowerControl";
 
 	Tyruswoo.FollowerControl.parameters = PluginManager.parameters(pluginName);
 	Tyruswoo.FollowerControl.param = Tyruswoo.FollowerControl.param || {};
@@ -518,134 +549,89 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		Tyruswoo.FollowerControl.parameters['Non-Combat Class']);
 	Tyruswoo.FollowerControl.param.searchLimit = Number(
 		Tyruswoo.FollowerControl.parameters['Pathfinding Search Limit']);
-	
-	// Variables
-	Tyruswoo.FollowerControl._followerIndex = 0;
-	Tyruswoo.FollowerControl._stopChase = false;
 
 	//=============================================================================
 	// Follower Control Functions and Properties
 	//=============================================================================
 
-	Object.defineProperties(Tyruswoo.FollowerControl, {
-		actor: {
-			get: function() {
-				let follower = this._follower;
-				return follower ? follower.actor() : null;
-			},
-			enumerable: false
-		},
-		followerIndex: {
-			get: function() {
-				return this._followerIndex;
-			},
-			set: function(value) {
-				this._followerIndex = value;
-				if (this._followerIndex > 0) {
-					//console.log("FollowerControl: Move Route commands now affect Follower ", this._followerIndex);
-				} else if (this._followerIndex === 0) {
-					//console.log("FollowerControl: Move Route commands now affect the party Leader.");
-				} else {
-					console.warn("FollowerControl: follower index set to unexpected number " + this._followerIndex);
-				}
-			},
-			enumerable: true
-		},
-		_follower: {
-			get: function() {
-				if (0 == this.followerIndex) {
-					return $gamePlayer;
-				} else if (this.followerIndex > 0 && $gamePlayer && $gamePlayer.followers) {
-					if (this.followerIndex < $gameParty.onMapMembers().length) {
-						return $gamePlayer.followers().follower(this.followerIndex - 1);
-					} else {
-						return null; // No one's following at this index.
-					}
-				} else {
-					console.warn("FollowerControl: Follower property could not find Follower " + this.followerIndex);
-					return null;
-				}
-			},
-			set: function(value) {
-				if (value === $gamePlayer) {
-					this.followerIndex = 0; // party leader
-				} else if (!$gamePlayer.followers() || null === value || undefined === value) {
-					console.warn("FollowerControl: Couldn't set follower.");
-					this.followerIndex = -1;
-				} else {
-					var idx = $gamePlayer.followers()._data.indexOf(value);
-					this.followerIndex = idx >= 0 ? idx + 1 : -1;
-				}
-			},
-			enumerable: false
-		}
-	});
+	Tyruswoo.FollowerControl.setChase = function(doChase) {
+		$gamePlayer._followers.setChase(doChase);
+	};
 
-	// New method.
-	// This method returns any current valid value of the Tyruswoo.FollowerControl._follower variable.
-	// Possible returned values: By default, $gamePlayer. If Follower Control has selected another follower, that follower is used.
-	// However, if a follower was attempted to be selected, but that follower does not exist, then no party member is selected (return null).
-	Tyruswoo.FollowerControl.follower = function() {
-		return Tyruswoo.FollowerControl._follower;
+	Tyruswoo.FollowerControl.partyIsChasing = function() {
+		$gamePlayer._followers.areChasing();
 	};
 	
 	//=============================================================================
 	// PluginManager
 	//=============================================================================
 	
+	// The code below gives Tyruswoo and McKathlin plugins a way to access
+	// the calling interpreter: it's added to args as args.interpreter.
+	if (!Tyruswoo.rmmz_PluginManager_callCommand) {
+		Tyruswoo.rmmz_PluginManager_callCommand = PluginManager.callCommand;
+		PluginManager.callCommand = function(caller, pluginName, commandName, args) {
+			if (/^Tyruswoo|^McKathlin/.test(pluginName)) {
+				args.interpreter = caller;
+			}
+			Tyruswoo.rmmz_PluginManager_callCommand.call(
+				this, caller, pluginName, commandName, args);
+		};
+	}
+
 	// leader
 	PluginManager.registerCommand(pluginName, "leader", args => {
-		Tyruswoo.FollowerControl.followerIndex = 0;
+		args.interpreter.followerIndex = 0;
 	});
 	
 	// follower_1
 	PluginManager.registerCommand(pluginName, "follower_1", args => {
-		Tyruswoo.FollowerControl.followerIndex = 1;
+		args.interpreter.followerIndex = 1;
 	});
 
 	// follower_2
 	PluginManager.registerCommand(pluginName, "follower_2", args => {
-		Tyruswoo.FollowerControl.followerIndex = 2;
+		args.interpreter.followerIndex = 2;
 	});
 
 	// follower_3
 	PluginManager.registerCommand(pluginName, "follower_3", args => {
-		Tyruswoo.FollowerControl.followerIndex = 3;
+		args.interpreter.followerIndex = 3;
 	});
 	
 	// follower_4
 	PluginManager.registerCommand(pluginName, "follower_4", args => {
-		Tyruswoo.FollowerControl.followerIndex = 4;
+		args.interpreter.followerIndex = 4;
 	});
 
 	// follower_5
 	PluginManager.registerCommand(pluginName, "follower_5", args => {
-		Tyruswoo.FollowerControl.followerIndex = 5;
+		args.interpreter.followerIndex = 5;
 	});
 
 	// follower_6
 	PluginManager.registerCommand(pluginName, "follower_6", args => {
-		Tyruswoo.FollowerControl.followerIndex = 6;
+		args.interpreter.followerIndex = 6;
 	});
 	
 	// follower_7
 	PluginManager.registerCommand(pluginName, "follower_7", args => {
-		Tyruswoo.FollowerControl.followerIndex = 7;
+		args.interpreter.followerIndex = 7;
 	});
 	
 	// follower_8
 	PluginManager.registerCommand(pluginName, "follower_8", args => {
-		Tyruswoo.FollowerControl.followerIndex = 8;
+		args.interpreter.followerIndex = 8;
 	});
 	
 	// follower_9
 	PluginManager.registerCommand(pluginName, "follower_9", args => {
-		Tyruswoo.FollowerControl.followerIndex = 9;
+		args.interpreter.followerIndex = 9;
 	});
 
 	// follower_by_position
 	PluginManager.registerCommand(pluginName, "follower_by_position", args => {
-		Tyruswoo.FollowerControl.followerIndex = Number(args.followerId);
+		args.interpreter.followerIndex = Number(args.followerId);
 	});
 
 	// follower_by_name
@@ -656,7 +642,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 				let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 				let actorName = $dataActors[actorId].name; //Get the Database name of the actor, based on the actorId.
 				if (actorName == args.followerName) {
-					Tyruswoo.FollowerControl.followerIndex = i;
+					args.interpreter.followerIndex = i;
 					break;
 				}
 			}
@@ -670,7 +656,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			for (let i = 0; i < len; i++) {
 				let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 				if (actorId == args.actorId) {
-					Tyruswoo.FollowerControl.followerIndex = i;
+					args.interpreter.followerIndex = i;
 					break;
 				}
 			}
@@ -681,7 +667,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	PluginManager.registerCommand(pluginName, "follower_by_position_variable", args => {
 		if (args.variableId) {
 			let followerIndex = $gameVariables.value(Number(args.variableId));
-			Tyruswoo.FollowerControl.followerIndex = followerIndex;
+			args.interpreter.followerIndex = followerIndex;
 		}
 	});
 	
@@ -694,7 +680,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 				for (let i = 0; i < len; i++) {
 					let actorId = $gameParty.onMapMembers()[i].actorId(); //Get the actorId that belongs to this follower.
 					if (actorId == targetActorId) {
-						Tyruswoo.FollowerControl.followerIndex = i;
+						args.interpreter.followerIndex = i;
 						break;
 					}
 				} // endfor i in follower lineup
@@ -704,17 +690,29 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 	// stop_chase
 	PluginManager.registerCommand(pluginName, "stop_chase", args => {
-		Tyruswoo.FollowerControl._stopChase = true;
+		if ('selected' == args.target) {
+			// Selected follower stops chase.
+			args.interpreter._follower.setChase(false);
+		} else {
+			// Make all stop chase.
+			Tyruswoo.FollowerControl.setChase(false);
+		}
 	});
 
 	// chase
 	PluginManager.registerCommand(pluginName, "chase", args => {
-		Tyruswoo.FollowerControl._stopChase = false;
+		if ('selected' == args.target) {
+			// Selected follower rejoins chase lineup.
+			args.interpreter._follower.setChase(true);
+		} else {
+			// Make all resume chase.
+			Tyruswoo.FollowerControl.setChase(true);
+		}
 	});
 
 	// pose
 	PluginManager.registerCommand(pluginName, "pose", args => {
-		let actor = Tyruswoo.FollowerControl.actor;
+		let actor = args.interpreter.followerActor;
 		if (actor) {
 			let core = actor.characterNameCore();
 			let pose = core + "_" + args.poseName;
@@ -725,7 +723,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 	// reset_pose
 	PluginManager.registerCommand(pluginName, "reset_pose", args => {
-		let actor = Tyruswoo.FollowerControl.actor;
+		let actor = args.interpreter.followerActor;
 		if (actor) {
 			actor._characterName = actor.characterNameCore();
 			$gamePlayer.refresh();
@@ -775,6 +773,86 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	//=============================================================================
 
 	// Alias method
+	Tyruswoo.FollowerControl.Game_Interpreter_clear = 
+		Game_Interpreter.prototype.clear;
+	Game_Interpreter.prototype.clear = function() {
+		Tyruswoo.FollowerControl.Game_Interpreter_clear.call(this);
+		this._followerIndex = 0;
+	};
+
+	// Alias method
+	// Parent interpreter passes its follower selection to its child
+	Tyruswoo.FollowerControl.Game_Interpreter_setupChild =
+		Game_Interpreter.prototype.setupChild;
+	Game_Interpreter.prototype.setupChild = function(list, eventId) {
+		Tyruswoo.FollowerControl.Game_Interpreter_setupChild.call(
+			this, list, eventId);
+		this._childInterpreter._parent = this;
+	};
+
+	Object.defineProperties(Game_Interpreter.prototype, {
+		followerActor: {
+			get: function() {
+				let follower = this._follower;
+				return follower ? follower.actor() : null;
+			},
+			enumerable: false
+		},
+		followerIndex: {
+			get: function() {
+				var root = this;
+				while (root._depth > 0 && !!root._parent) {
+					root = root._parent;
+				}
+				return root._followerIndex;
+			},
+			set: function(value) {
+				var root = this;
+				while (root._depth > 0 && !!root._parent) {
+					root = root._parent;
+				}
+				root._followerIndex = value;
+				if (root._followerIndex > 0) {
+					//console.log("FollowerControl: Move Route commands now affect Follower ", this._followerIndex);
+				} else if (root._followerIndex === 0) {
+					//console.log("FollowerControl: Move Route commands now affect the party Leader.");
+				} else {
+					console.warn("FollowerControl: follower index set to unexpected number " + this._followerIndex);
+				}
+			},
+			enumerable: true
+		},
+		_follower: {
+			get: function() {
+				if (0 == this.followerIndex) {
+					return $gamePlayer;
+				} else if (this.followerIndex > 0 && $gamePlayer && $gamePlayer.followers) {
+					if (this.followerIndex < $gameParty.onMapMembers().length) {
+						return $gamePlayer.followers().follower(this.followerIndex - 1);
+					} else {
+						return null; // No one's following at this index.
+					}
+				} else {
+					console.warn("FollowerControl: Follower property could not find Follower " + this.followerIndex);
+					return null;
+				}
+			},
+			set: function(value) {
+				if (value === $gamePlayer) {
+					this.followerIndex = 0; // party leader
+				} else if (!$gamePlayer.followers() || null === value || undefined === value) {
+					console.warn("FollowerControl: Couldn't set follower.");
+					this.followerIndex = -1;
+				} else {
+					var idx = $gamePlayer.followers()._data.indexOf(value);
+					this.followerIndex = idx >= 0 ? idx + 1 : -1;
+				}
+			},
+			enumerable: false
+		}
+	});
+
+	// Alias method
 	// Conditional Branch
 	Tyruswoo.FollowerControl.Game_Interpreter_command111 =
 		Game_Interpreter.prototype.command111;
@@ -817,15 +895,22 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			x = $gameVariables.value(params[2]);
 			y = $gameVariables.value(params[3]);
 		};
-		if (mapId !== $gameMap.mapId()) {  //If transferring to a different map, then always transfer the leader, with followers.
-			Tyruswoo.FollowerControl._stopChase = false; //If player goes to a new map, followers will resume chase.
-			Tyruswoo.FollowerControl.followerIndex = 0;	//If player goes to a new map, reset selected follower to the leader.
-			return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
-		} else if (Tyruswoo.FollowerControl.followerIndex === 0) {
-			if (!Tyruswoo.FollowerControl._stopChase) { //Followers are chasing the leader, so transfer leader with followers.
-				return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params); //Default method.
-			} else { //Followers are not chasing the leader, so simply teleport the leader within the map, like any other follower.
-			    Game_Character.prototype.locate.call($gamePlayer, x, y);
+
+		// If transferring to a different map, then always transfer the leader, with followers.
+		if (mapId !== $gameMap.mapId()) {
+			// If player goes to a new map, followers will resume chase.
+			Tyruswoo.FollowerControl.setChase(true);
+			// And reset selected follower to the leader.
+			this.followerIndex = 0;
+			return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params);
+		} else if (this.followerIndex === 0) {
+			if (Tyruswoo.FollowerControl.partyIsChasing()) {
+				// Followers are chasing the leader, so transfer leader with followers.
+				return Tyruswoo.FollowerControl.Game_Interpreter_command201.call(this, params);
+			} else {
+				// Followers are not chasing the leader.
+				// Teleport the leader within the map, like any other follower.
+				Game_Character.prototype.locate.call($gamePlayer, x, y);
 				if (!Imported.Tyruswoo_CameraControl || (Imported.Tyruswoo_CameraControl && $gameMap._camFollow == "player")) {
 					$gamePlayer.center(x, y);
 				}
@@ -834,8 +919,9 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 					$gamePlayer.vehicle().refresh();
 				}
 			}
-		} else {  //Transfer a follower.
-			const follower = Tyruswoo.FollowerControl._follower;
+		} else {
+			// Transfer a follower.
+			const follower = this._follower;
 			if (follower) {
 				follower.locate(x, y);
 				if (params[4] > 0) { // Set follower direction
@@ -857,7 +943,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		if ($gameParty.inBattle()) {
 			return null;
 		} else if (param < 0) {
-			return Tyruswoo.FollowerControl.follower(); // Changed line.
+			return this._follower; // Changed line.
 		} else {
 			return Tyruswoo.FollowerControl.Game_Interpreter_character.call(this, param); //Default method.
 		}
@@ -1182,20 +1268,10 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		return $gameParty.battleMembers()[0];
 	};
 
-	// Replacement method
-	Game_Player.prototype.jump = function(xPlus, yPlus) {
-		Game_Character.prototype.jump.call(this, xPlus, yPlus);
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.jumpAll();
-		};
-	};
-
 	// New method
 	Game_Player.prototype.setOpacity = function(opacity) {
 		this._opacity = opacity;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setOpacityAll(opacity);
-		}
+		this._followers.setOpacityAll(opacity);
 	};
 
 	// New method
@@ -1205,50 +1281,37 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		if (!this.actor() || !this.actor().hasStepAnime()) {
 			Game_Character.prototype.setStepAnime.call(this, stepAnime);
 		}
-
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setStepAnimeAll(stepAnime);
-		}
+		this._followers.setStepAnimeAll(stepAnime);
 	};
 
 	// New method
 	Game_Player.prototype.setDirectionFix = function(directionFix) {
 		this._directionFix = directionFix;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setDirectionFixAll(directionFix);
-		}
+		this._followers.setDirectionFixAll(directionFix);
 	};
 
 	// New method
 	Game_Player.prototype.setTransparent = function(transparent) {
 		this._transparent = transparent;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setTransparentAll(transparent);
-		}
+		this._followers.setTransparentAll(transparent);
 	};
 
 	// New method
 	Game_Player.prototype.setWalkAnime = function(walkAnime) {
 		this._walkAnime = walkAnime;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setWalkAnimeAll(walkAnime);
-		}
+		this._followers.setWalkAnimeAll(walkAnime);
 	};
 
 	// New method
 	Game_Player.prototype.setBlendMode = function(blendMode) {
 		this._blendMode = blendMode;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setBlendModeAll(blendMode);
-		}
+		this._followers.setBlendModeAll(blendMode);
 	};
 
 	// New method
 	Game_Player.prototype.setMoveSpeed = function(moveSpeed) {
 		this._moveSpeed = moveSpeed;
-		if (!Tyruswoo.FollowerControl._stopChase) {
-			this._followers.setMoveSpeedAll(moveSpeed);
-		}
+		this._followers.setMoveSpeedAll(moveSpeed);
 	};
 	
 	// New method, 26 Dec. 2018.
@@ -1270,6 +1333,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Followers are active battle members plus non-combat followers,
 	// so max follower count is calculated differently from RMMZ default.
 	Game_Followers.prototype.setup = function() {
+		this._stopChase = false;
 		this._data = [];
 		const maxMembers = $gameParty.maxBattleMembers() +
 			Tyruswoo.FollowerControl.param.maxNonCombatFollowers;
@@ -1278,69 +1342,174 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		}
 	};
 
+	// New method
+	Game_Followers.prototype.areChasing = function() {
+		return !this._stopChase;
+	};
+
+	// New method
+	Game_Followers.prototype.setChase = function(doChase=true) {
+		// Set chase for all followers
+		this._stopChase = !doChase;
+		for (follower of this._data) {
+			// Remove individual chase toggles; do what the group is doing.
+			follower.resetChase();
+		}
+	}
+
+	// New method
+	// Stop chasing the leader.
+	Game_Followers.prototype.stopChase = function() {
+		this.setChase(false);
+	};
+
+	// New method
+	// Resume chasing the leader.
+	Game_Followers.prototype.chase = function() {
+		this.setChase(true);
+	};
+
+	// Replacement method
+	Game_Followers.prototype.updateMove = function() {
+		chaseList = this._data.filter((follower) => follower.isChasing())
+		for (var i = chaseList.length - 1; i >= 0; i--) {
+			var precedingCharacter = (i > 0 ? chaseList[i - 1] : $gamePlayer);
+			chaseList[i].chaseCharacter(precedingCharacter);
+		}
+	};
 
 	// Alias method
-	Tyruswoo.FollowerControl.Game_Followers_updateMove = Game_Followers.prototype.updateMove;
-	Game_Followers.prototype.updateMove = function() {
-		if (Tyruswoo.FollowerControl._stopChase) {
-			return false;
-		};
-		Tyruswoo.FollowerControl.Game_Followers_updateMove.call(this);
+	// Resume chase before gathering.
+	Tyruswoo.FollowerControl.Game_Followers_gather =
+		Game_Followers.prototype.gather;
+	Game_Followers.prototype.gather = function() {
+		this.setChase(true);
+		Tyruswoo.FollowerControl.Game_Followers_gather.call(this);
+	};
+
+	// Replacement method
+	// Chasing followers will jump; non-chasing followers will not jump.
+	Game_Followers.prototype.jumpAll = function() {
+		if ($gamePlayer.isJumping()) {
+			for (var i = 0; i < this._data.length; i++) {
+				var follower = this._data[i];
+				if (follower.isChasing()) {
+					var sx = $gamePlayer.deltaXFrom(follower.x);
+					var sy = $gamePlayer.deltaYFrom(follower.y);
+					follower.jump(sx, sy);
+				}
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setOpacityAll = function(opacity) {
-		this._data.forEach(function(follower) {
-			follower.setOpacity(opacity);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setOpacity(opacity);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setStepAnimeAll = function(stepAnime) {
-		this._data.forEach(function(follower) {
-			follower.setStepAnime(stepAnime);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setStepAnime(stepAnime);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setDirectionFixAll = function(directionFix) {
-		this._data.forEach(function(follower) {
-			follower.setDirectionFix(directionFix);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setDirectionFix(directionFix);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setTransparentAll = function(transparent) {
-		this._data.forEach(function(follower) {
-			follower.setTransparent(transparent);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setTransparent(transparent);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setWalkAnimeAll = function(walkAnime) {
-		this._data.forEach(function(follower) {
-			follower.setWalkAnime(walkAnime);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setWalkAnime(walkAnime);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setBlendModeAll = function(blendMode) {
-		this._data.forEach(function(follower) {
-			follower.setBlendMode(blendMode);
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				follower.setBlendMode(blendMode);
+			}
+		}
 	};
 
 	// New method
 	Game_Followers.prototype.setMoveSpeedAll = function(moveSpeed) {
-		this._data.forEach(function(follower) {
-			follower.setMoveSpeed($gamePlayer.realMoveSpeed()); //Use the player's realMoveSpeed
-		}, this);
+		for (follower of this._data) {
+			if (follower.isChasing()) {
+				// Use the player's realMoveSpeed
+				follower.setMoveSpeed($gamePlayer.realMoveSpeed());
+			}
+		}
 	};
 	
 	//=============================================================================
 	// Game_Follower
 	//=============================================================================
 	
+	// New method
+	// Set this individual follower's chase.
+	Game_Follower.prototype.setChase = function(doChase=true) {
+		this._stopChase = !doChase;
+	};
+
+	// New method
+	// This individual follower will start chasing the leader.
+	Game_Follower.prototype.chase = function() {
+		this._stopChase = false;
+	};
+
+	// New method
+	// This individual follower will stop chasing the leader.
+	Game_Follower.prototype.stopChase = function() {
+		this._stopChase = true;
+	};
+
+	// New method
+	// This individual follower will chase or not,
+	// depending on what the Followers group is doing.
+	Game_Follower.prototype.resetChase = function() {
+		this._stopChase = null;
+	};
+
+	// New method
+	Game_Follower.prototype.isChasing = function() {
+		if (true === this._stopChase) {
+			return false;
+		} else if (false === this._stopChase) {
+			return true;
+		} else if ($gamePlayer && $gamePlayer._followers) {
+			// When this._stopChase is null or undefined,
+			// the Follower defaults to the whole Followers group's behavior.
+			return $gamePlayer._followers.areChasing();
+		} else {
+			return true; // Chasing is followers' default behavior.
+		}
+	};
+
 	// Alias method
 	Tyruswoo.FollowerControl.Game_Follower_refresh =
 		Game_Follower.prototype.refresh;
@@ -1368,7 +1537,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// These atributes should be set when the player's attributes are set, rather than constantly updated.
 	Game_Follower.prototype.update = function() {
 		Game_Character.prototype.update.call(this);
-		if (!Tyruswoo.FollowerControl._stopChase) {
+		if (this.isChasing()) {
 			this.setMoveSpeed($gamePlayer.realMoveSpeed());
 		};
 		//this.setOpacity($gamePlayer.opacity());

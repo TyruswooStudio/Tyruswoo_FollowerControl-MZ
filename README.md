@@ -228,6 +228,15 @@ Plus, unlimited followers!
 **v5.0.1** - 8/30/2023
 - This plugin is now free and open source under the [MIT license](https://opensource.org/license/mit/).
 
+**v6.0.0** - 1/23/2024
+- Each event now starts with the Player as the selected follower,
+  and its follower selection is independent of other events' follower selections.
+  (A common event uses the follower selection of the event that called it.)
+- It is now possible to have an individual follower stop chase or resume chase.
+- Fixed the bug where the game got stuck when Gather Followers was called
+  when followers were non-chasing. Followers now always resume chase when the
+  Gather Followers command is used.
+
 > **Remember, only you can build your dreams!**
 > 
 > *Tyruswoo*
