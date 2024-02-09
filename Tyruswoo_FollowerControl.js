@@ -36,7 +36,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 
 /*:
  * @target MZ
- * @plugindesc MZ v6.0.0 Provides greater control of party follower movement! Allows event commands targeting the "player" to affect any follower!
+ * @plugindesc MZ v6.0.1 Provides greater control of party follower movement! Allows event commands targeting the "player" to affect any follower!
  * @author Tyruswoo and McKathlin
  * @url https://www.tyruswoo.com
  *
@@ -276,11 +276,19 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *           and its follower selection is independent from other events'
  *           follower selections. (A common event uses the follower selection
  *           of the event that called it.)
+ *         - Tyruswoo.FollowerControl.follower() is no longer supported.
  *         - It is now possible to have an individual follower stop chase
  *           or resume chase.
  *         - Fixed the bug where the game got stuck when Gather Followers was
  *           called when followers were non-chasing. Followers now always
  *           resume chase when the Gather Followers command is used.
+ * 
+ * v6.0.1  2/9/2024
+ *         - Re-added Tyruswoo.FollowerControl.follower() for the sake of
+ *           compatibility with older plugins and scripts.
+ *         - Game_Interpreter has a new property selectedFollower.
+ *           In a script, use this.selectedFollower to get the active
+ *           interpreter's currently selected follower.
  * ============================================================================
  * MIT License
  *
@@ -554,6 +562,28 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	// Follower Control Functions and Properties
 	//=============================================================================
 
+	// This method is deprecated.
+	// It is kept around for compatibility with older plugins and scripts.
+	// Scripts should use the property this.selectedFollower instead.
+	Tyruswoo.FollowerControl.follower = function() {
+		// Use party leader if no on-map interpreter found.
+		if (!$gameMap || !$gameMap.interpreter) {
+			console.warn("Tyruswoo.FollowerControl.follower " +
+				"can't find active on-map event.");
+			return $gamePlayer;
+		}
+
+		// Get the innermost active interpreter.
+		var interpreter = $gameMap._interpreter;
+		while (innerInterpreter._childInterpreter &&
+			interpreter._childInterpreter.isRunning()) {
+			interpreter = innerInterpreter._childInterpreter;
+		}
+
+		// Return the follower currently selected in that interpreter.
+		return interpreter.selectedFollower;
+	};
+
 	Tyruswoo.FollowerControl.setChase = function(doChase) {
 		$gamePlayer._followers.setChase(doChase);
 	};
@@ -692,7 +722,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	PluginManager.registerCommand(pluginName, "stop_chase", args => {
 		if ('selected' == args.target) {
 			// Selected follower stops chase.
-			args.interpreter._follower.setChase(false);
+			args.interpreter.selectedFollower.setChase(false);
 		} else {
 			// Make all stop chase.
 			Tyruswoo.FollowerControl.setChase(false);
@@ -703,7 +733,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	PluginManager.registerCommand(pluginName, "chase", args => {
 		if ('selected' == args.target) {
 			// Selected follower rejoins chase lineup.
-			args.interpreter._follower.setChase(true);
+			args.interpreter.selectedFollower.setChase(true);
 		} else {
 			// Make all resume chase.
 			Tyruswoo.FollowerControl.setChase(true);
@@ -793,7 +823,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 	Object.defineProperties(Game_Interpreter.prototype, {
 		followerActor: {
 			get: function() {
-				let follower = this._follower;
+				let follower = this.selectedFollower;
 				return follower ? follower.actor() : null;
 			},
 			enumerable: false
@@ -822,7 +852,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			},
 			enumerable: true
 		},
-		_follower: {
+		selectedFollower: {
 			get: function() {
 				if (0 == this.followerIndex) {
 					return $gamePlayer;
@@ -847,6 +877,17 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 					var idx = $gamePlayer.followers()._data.indexOf(value);
 					this.followerIndex = idx >= 0 ? idx + 1 : -1;
 				}
+			},
+			enumerable: false
+		},
+		// _follower is kept for the sake of backwards compatibility
+		// with any plugins or scripts made to work with v6.0.0.
+		_follower: {
+			get: function() {
+				return this.selectedFollower;
+			},
+			set: function(value) {
+				this.selectedFollower = value;
 			},
 			enumerable: false
 		}
@@ -921,7 +962,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 			}
 		} else {
 			// Transfer a follower.
-			const follower = this._follower;
+			const follower = this.selectedFollower;
 			if (follower) {
 				follower.locate(x, y);
 				if (params[4] > 0) { // Set follower direction
@@ -943,7 +984,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
 		if ($gameParty.inBattle()) {
 			return null;
 		} else if (param < 0) {
-			return this._follower; // Changed line.
+			return this.selectedFollower; // Changed line.
 		} else {
 			return Tyruswoo.FollowerControl.Game_Interpreter_character.call(this, param); //Default method.
 		}

@@ -237,6 +237,13 @@ Plus, unlimited followers!
   when followers were non-chasing. Followers now always resume chase when the
   Gather Followers command is used.
 
+ **v6.0.1** - 2/9/2024
+- Re-added Tyruswoo.FollowerControl.follower() for the sake of
+  compatibility with older plugins and scripts.
+- Game_Interpreter has a new property selectedFollower.
+  In a script, use this.selectedFollower to get the active interpreter's
+  currently selected follower.
+
 > **Remember, only you can build your dreams!**
 > 
 > *Tyruswoo*
