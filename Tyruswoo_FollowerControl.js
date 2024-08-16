@@ -198,7 +198,7 @@ Tyruswoo.FollowerControl = Tyruswoo.FollowerControl || {};
  *    If a move route turns a party member's stepping ON or OFF, step animation
  *    runs if Actor stepping is ON, or move route stepping is ON, or both.
  * ============================================================================
- * For more help using the Follower Control plugin, see Tyruswoo.com.
+ * Visit Tyruswoo.com to ask for help, donate, or browse more of our plugins.
  * ============================================================================
  * Version History:
  *
