@@ -157,7 +157,7 @@ Plus, unlimited followers!
    If a move route turns a party member's stepping ON or OFF, step animation
    runs if Actor stepping is ON, or move route stepping is ON, or both.
 
-### For more help using the Follower Control plugin, see [Tyruswoo.com](https://www.tyruswoo.com).
+### Visit [**Tyruswoo.com**](https://www.tyruswoo.com) to [ask for help](https://www.tyruswoo.com/contact-us/), [donate](https://www.tyruswoo.com/donate/), or browse more of our [plugins](https://www.tyruswoo.com/downloads/rpg-maker-plugin-downloads/).
 
 ## Version History:
 **v1.0** - 8/22/2020
